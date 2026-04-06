@@ -25,6 +25,7 @@ model User {
   role         Role     @default(STUDENT)
   
   profile      Profile?
+  bookings     Booking[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -45,4 +46,48 @@ model Profile {
   updatedAt DateTime @updatedAt
 
   @@map("profiles")
+}
+
+enum RoomStatus {
+  AVAILABLE
+  BOOKED
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  LOCKED
+  CONFIRMED
+  CANCELLED
+}
+
+model Room {
+  id         String     @id @default(uuid())
+  roomNumber String     @unique
+  basePrice  Float
+  status     RoomStatus @default(AVAILABLE)
+  version    Int        @default(1) // For Optimistic Concurrency Control
+  
+  bookings   Booking[]
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("rooms")
+}
+
+model Booking {
+  id         String        @id @default(uuid())
+  roomId     String
+  userId     String
+  status     BookingStatus @default(PENDING)
+  totalPrice Float
+
+  room       Room          @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@map("bookings")
 }
