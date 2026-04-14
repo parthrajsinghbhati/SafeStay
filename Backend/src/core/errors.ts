@@ -24,12 +24,9 @@ export class ErrorHandler {
       message = 'Internal Server Error';
     }
 
-    if (process.env.NODE_ENV === 'development') {
-        console.error(`[ERROR] ${statusCode}: ${err.message}`, err.stack);
-    }
-    
+    console.error(`[ERROR] ${statusCode}: ${err.message}`, err.stack);
     res.status(statusCode).json({
-      status: 'error',
+      success: false,
       statusCode,
       message,
     });

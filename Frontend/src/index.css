@@ -1,111 +1,196 @@
-:root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import 'tailwindcss';
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+@theme {
+  --font-sans: 'Manrope', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
+    /* ── CORE PALETTE: AERIE LIGHT ── */
+    --bg: #F8FAFC;                     /* Very light slate background */
+    --surface-low: #ffffff;            /* Pure white for panels */
+    --surface-mid: #ffffff;            /* Pure white for main cards */
+    --surface-high: #F1F5F9;           /* Light slate for hover/active states */
+    --surface-highest: #E2E8F0;        /* Slightly darker slate for pressed/borders */
+    
+    /* ── BRAND: AZURE BLUE ── */
+    --primary: #2563EB;                /* Rich royal blue */
+    --primary-container: #3B82F6;      /* Vibrant blue for gradients */
+    --primary-hover: #1D4ED8;          /* Deeper blue for hover */
+    --on-primary: #ffffff;             /* Crisp white text on primary buttons */
+    
+    /* ── TYPOGRAPHY ── */
+    --text: #0F172A;                   /* Almost black slate for extreme clarity */
+    --text-muted: #64748B;             /* Standard slate placeholder and subtext */
+    
+    /* ── STRUCTURAL ── */
+    --border: #E2E8F0;                 /* Clean subtle borders */
+    --error: #EF4444;                  /* Red for errors */
+    --error-container: #FEF2F2;        /* Light red bg */
+    --on-error-container: #991B1B;     /* Dark red text */
+    
+    /* ── ELEVATION & SHADOWS ── */
+    --shadow-ambient: 0 10px 40px -10px rgba(15, 23, 42, 0.05),
+                      0 1px 3px rgba(15, 23, 42, 0.02); /* Extremely soft, premium shadow */
+    --shadow-glow: 0 12px 30px -8px rgba(37, 99, 235, 0.25); /* Azure soft glow */
+    --shadow-inner: inset 0 2px 4px 0 rgba(15, 23, 42, 0.02);
+    
+    /* ── BENTO RADIUS ── */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
   }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
+  * {
+    border-color: var(--border);
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface-highest) transparent;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Manrope', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Typography utilities */
+  .display-font {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
+@layer components {
+  /* ── GLASSMORPHISM & MATERIALS ── */
+  .glass {
+    background: var(--surface-low);
+    /* In light mode, pure white usually looks cleaner without heavy backdrop blur,
+       but we keep a tiny bit just in case of overlapping visual elements */
+    backdrop-blur: 16px;
+    -webkit-backdrop-filter: blur(16px);
+  }
 
-body {
-  margin: 0;
-}
+  .card {
+    background: var(--surface-low);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-ambient);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
+  .card:hover {
+    box-shadow: 0 20px 40px -12px rgba(15, 23, 42, 0.08); /* Lift effect */
+    border-color: #CBD5E1; 
+  }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+    color: var(--on-primary);
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-glow);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px -8px rgba(37, 99, 235, 0.4);
+  }
+
+  .btn-primary:hover::after {
+    transform: translateX(100%);
+  }
+
+  .btn-primary:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--surface-low);
+    color: var(--text);
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-ambient);
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-high);
+    border-color: #CBD5E1;
+    transform: translateY(-1px);
+    color: var(--primary);
+  }
+
+  /* ── INPUTS ── */
+  .input-field {
+    width: 100%;
+    background: var(--surface-low);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text);
+    padding: 0.875rem 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.01);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .input-field:focus {
+    outline: none;
+    background: var(--surface-low);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+
+/* Base custom scrollbar styles that override the global resetting */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--surface-highest);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

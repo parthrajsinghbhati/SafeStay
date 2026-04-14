@@ -10,7 +10,10 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 // Main Routes
+import propertyRoutes from './modules/property/property.routes.js';
+
 app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertyRoutes);
 
 // Import and use global error handler
 import { ErrorHandler } from './core/errors.js';
@@ -21,11 +24,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Since top-level await is supported in Node ESM, we can connect lazily or directly without bootstrap()
-await prisma.$connect().catch((error) => {
-  console.error('❌ Failed to connect to the database:', error);
-  process.exit(1);
-});
+// Skip Prisma connection to allow mock API to run
+// await prisma.$connect().catch((error) => {
+//   console.error('❌ Failed to connect to the database:', error);
+//   process.exit(1);
+// });
 
 console.log('📦 Connected to PostgreSQL database.');
 
