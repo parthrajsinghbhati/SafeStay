@@ -8,8 +8,8 @@ export class AuthController {
     try {
       const payload = req.body as RegisterDTO;
       
-      const user = await AuthService.registerUser(payload);
-      res.status(201).json({ message: 'User registered successfully', user });
+      const { user, token } = await AuthService.registerUser(payload);
+      res.status(201).json({ success: true, message: 'User registered successfully', data: { user, tokens: { accessToken: token } } });
     } catch (error) {
       next(error);
     }
@@ -20,12 +20,12 @@ export class AuthController {
       const payload = req.body as LoginDTO;
 
       if (!payload.email || !payload.password) {
-         res.status(400).json({ error: 'Email and password are required' });
+         res.status(400).json({ success: false, message: 'Email and password are required' });
          return;
       }
       
-      const { user, token } = await AuthService.loginUser(payload.email, payload.password);
-      res.status(200).json({ message: 'Login successful', user, token });
+      const { user, token } = await AuthService.loginUser(payload.email, payload.password, req.body.role);
+      res.status(200).json({ success: true, message: 'Login successful', data: { user, tokens: { accessToken: token } } });
     } catch (error) {
        next(error);
     }
