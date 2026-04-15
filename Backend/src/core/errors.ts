@@ -24,6 +24,18 @@ export class ErrorHandler {
       message = 'Internal Server Error';
     }
 
+    // Prisma Unique Constraint Error
+    if (err.code === 'P2002') {
+      statusCode = 409;
+      message = `Conflict: Unique constraint failed on the column(s): ${err.meta?.target}`;
+    }
+
+    // OCC / Double Booking Error Handling (from BookingService throw logic)
+    if (err.message && err.message.includes('Double Booking Detected')) {
+      statusCode = 409;
+      message = 'Conflict: The room is no longer available or was modified by another process. Double Booking Prevented.';
+    }
+
     if (process.env.NODE_ENV === 'development') {
         console.error(`[ERROR] ${statusCode}: ${err.message}`, err.stack);
     }

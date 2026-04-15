@@ -12,6 +12,14 @@ app.use(express.json());
 // Main Routes
 app.use('/api/auth', authRoutes);
 
+import roomRoutes from './modules/room/room.routes.js';
+import profileRoutes from './modules/profile/profile.routes.js';
+import bookingRoutes from './modules/booking/booking.routes.js';
+
+app.use('/api/rooms', roomRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/api/bookings', bookingRoutes);
+
 // Import and use global error handler
 import { ErrorHandler } from './core/errors.js';
 app.use(ErrorHandler.handle);
