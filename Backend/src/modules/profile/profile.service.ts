@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../config/database.js';
 import { AppError } from '../../core/errors.js';
-
-const prisma = new PrismaClient();
 
 export class ProfileService {
   /**

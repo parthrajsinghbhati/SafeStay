@@ -1,7 +1,6 @@
-import { PrismaClient, RoomStatus } from '@prisma/client';
+import { prisma } from '../../config/database.js';
+import { RoomStatus } from '@prisma/client';
 import { AppError } from '../../core/errors.js';
-
-const prisma = new PrismaClient();
 
 export class RoomService {
   static async createRoom(data: { roomNumber: string; basePrice: number }) {

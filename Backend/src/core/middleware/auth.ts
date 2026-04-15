@@ -1,3 +1,4 @@
+import { prisma } from '../../config/database.js';
 import type { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 import { AppError } from '../errors.js';
@@ -30,13 +31,6 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
   }
 };
 
-/**
- * Ensures req.user exists and retrieves their role from DB since it wasn't in the JWT payload.
- * In a real application, the role should be placed in the JWT during login for stateless auth.
- * For now, we will query Prisma here.
- */
-import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 
 export const authorizeRoles = (...roles: string[]) => {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {

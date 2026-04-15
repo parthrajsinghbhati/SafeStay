@@ -1,6 +1,5 @@
-import { PrismaClient, RoomStatus, BookingStatus } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../../config/database.js';
+import { RoomStatus, BookingStatus } from '@prisma/client';
 
 /**
  * BookingService Class

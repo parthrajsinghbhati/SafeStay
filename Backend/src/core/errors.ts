@@ -24,7 +24,6 @@ export class ErrorHandler {
       message = 'Internal Server Error';
     }
 
-<<<<<<< HEAD
     // Prisma Unique Constraint Error
     if (err.code === 'P2002') {
       statusCode = 409;
@@ -40,10 +39,7 @@ export class ErrorHandler {
     if (process.env.NODE_ENV === 'development') {
         console.error(`[ERROR] ${statusCode}: ${err.message}`, err.stack);
     }
-    
-=======
-    console.error(`[ERROR] ${statusCode}: ${err.message}`, err.stack);
->>>>>>> eb7684f9615ba6596c526abcd2ffbdcef2f10fdb
+
     res.status(statusCode).json({
       success: false,
       statusCode,

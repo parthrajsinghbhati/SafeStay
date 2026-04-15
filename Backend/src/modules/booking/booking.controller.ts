@@ -1,3 +1,4 @@
+import { prisma } from '../../config/database.js';
 import type { Response, NextFunction } from 'express';
 import type { AuthRequest } from '../../core/middleware/auth.js';
 import { BookingService } from './services/BookingService.js';
@@ -7,9 +8,6 @@ import type { RoomPricing } from './pricing/RoomPricing.js';
 import { ACDecorator, WifiDecorator, FoodDecorator } from './pricing/PricingDecorators.js';
 import { BookingContext } from './flow/BookingContext.js';
 import { PendingState } from './flow/States.js';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
 const bookingService = new BookingService();
 
 export class BookingController {
