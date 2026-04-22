@@ -170,7 +170,7 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 type="email"
-                placeholder="name@university.edu"
+                placeholder="name@example.com"
                 className="input-field"
               />
               {errors.email && (

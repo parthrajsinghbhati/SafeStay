@@ -11,6 +11,8 @@ import OwnerDashboardPage from './pages/owner/OwnerDashboardPage';
 import MaintenancePage from './pages/MaintenancePage';
 import AddPropertyPage from './pages/owner/AddPropertyPage';
 import PlaceholderPage from './pages/PlaceholderPage';
+import PaymentPage from './pages/student/PaymentPage';
+import HelpSupportPage from './pages/HelpSupportPage';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 1 } },
@@ -30,10 +32,11 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/payments" element={<PlaceholderPage title="Payments" />} />
+              <Route path="/payments" element={<PaymentPage />} />
               <Route path="/maintenance" element={<MaintenancePage />} />
               <Route path="/contracts" element={<PlaceholderPage title="Contracts" />} />
               <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
+              <Route path="/help" element={<HelpSupportPage />} />
             </Route>
           </Route>
 
@@ -47,6 +50,7 @@ export default function App() {
               <Route path="/owner/contracts" element={<PlaceholderPage title="Contracts" />} />
               <Route path="/owner/settings" element={<PlaceholderPage title="Settings" />} />
               <Route path="/owner/add-property" element={<AddPropertyPage />} />
+              <Route path="/owner/help" element={<HelpSupportPage />} />
             </Route>
           </Route>
 

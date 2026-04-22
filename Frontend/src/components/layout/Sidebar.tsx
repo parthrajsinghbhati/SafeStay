@@ -103,19 +103,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         </nav>
       </div>
 
-      {/* Upgrade Banner */}
-      <div className="mx-3 my-4">
-        <div className="relative overflow-hidden rounded-[14px] bg-[var(--surface-highest)] border border-[var(--border)] p-4 shadow-[var(--shadow-ambient)]">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-[var(--primary)]/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <Sparkles className="w-5 h-5 text-[var(--primary)] mb-2" />
-          <p className="text-[var(--text)] text-xs font-semibold leading-snug mb-3">Upgrade to Pro for advanced analytics</p>
-          <button 
-            onClick={() => alert('Upgrade to Pro feature coming soon!')}
-            className="w-full bg-[var(--primary)] text-white text-xs font-bold py-2 rounded-[9px] hover:bg-white hover:text-[var(--primary)] transition-colors shadow-[var(--shadow-glow)]">
-            Upgrade Now
-          </button>
-        </div>
-      </div>
 
       {/* Bottom Actions */}
       <div className="px-3 pb-4 space-y-0.5 border-t border-[var(--border)] pt-3">
@@ -127,7 +114,10 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
           Switch to {user?.role === 'OWNER' ? 'Student' : 'Owner'}
         </button>
         <button 
-          onClick={() => alert('Support Portal coming soon!')}
+          onClick={() => {
+            navigate(user?.role === 'OWNER' ? '/owner/help' : '/help');
+            onClose?.();
+          }}
           className="flex items-center gap-3 px-3 py-2.5 rounded-[11px] text-sm font-medium w-full text-left text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-high)] transition-all group">
           <span className="w-8 h-8 flex items-center justify-center rounded-[9px] group-hover:bg-[var(--surface-highest)] transition-colors">
             <HelpCircle className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--primary)]" />

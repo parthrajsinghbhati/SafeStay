@@ -118,9 +118,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-1.5 text-white text-sm font-medium">
               <Star className="w-4 h-4 fill-[#FCD34D] text-[#FCD34D]" /> 4.9 <span className="text-white/60 font-normal">(128 reviews)</span>
             </div>
-            <div className="flex items-center gap-1.5 text-white text-sm font-medium">
-              <MapPin className="w-4 h-4 text-white/90" /> 2.1 mi from Campus
-            </div>
+
           </div>
         </div>
         <div className="relative z-10 shrink-0 w-full sm:w-auto">
