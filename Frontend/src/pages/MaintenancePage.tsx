@@ -25,13 +25,82 @@ const LOG_BADGE: Record<string, string> = {
   RESOLVED:    'bg-[#DCFCE7] text-[#15803D]',
 };
 
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiGet, apiPatch, apiPost } from '../lib/api';
+
+function ReportIssueModal({ onClose }: { onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [priority, setPriority] = useState<TicketPriority>('STANDARD');
+
+  const create = useMutation({
+    mutationFn: (d: any) => apiPost('/maintenance', d),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance'] });
+      onClose();
+    }
+  });
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-[20px] p-6 w-full max-w-lg shadow-2xl">
+        <h2 className="text-xl font-bold mb-4">Report New Issue</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold mb-1">Issue Title</label>
+            <input className="input-field w-full" value={title} onChange={(e)=>setTitle(e.target.value)} placeholder="e.g. Broken AC" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">Description</label>
+            <textarea className="input-field w-full" rows={3} value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Describe the issue..." />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">Location</label>
+            <input className="input-field w-full" value={location} onChange={(e)=>setLocation(e.target.value)} placeholder="e.g. Unit 101" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1">Priority</label>
+            <select className="input-field w-full" value={priority} onChange={(e)=>setPriority(e.target.value as TicketPriority)}>
+              <option value="LOW">Low</option>
+              <option value="STANDARD">Standard</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+          </div>
+          <div className="flex gap-3 justify-end mt-6">
+            <button className="btn-secondary px-4 py-2" onClick={onClose}>Cancel</button>
+            <button className="btn-primary px-4 py-2" onClick={() => create.mutate({ title, description, location, priority })} disabled={create.isPending}>
+              {create.isPending ? 'Submitting...' : 'Submit Ticket'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MaintenancePage() {
-  const [tickets, setTickets] = useState<MaintenanceTicket[]>(MOCK_TICKETS);
+  const queryClient = useQueryClient();
+  const [showModal, setShowModal] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['maintenance'],
+    queryFn: () => apiGet<{ tickets: MaintenanceTicket[] }>('/maintenance')
+  });
+  
+  const tickets = data?.tickets || [];
+
+  const updateStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) => 
+      apiPatch(`/maintenance/${id}/status`, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['maintenance'] })
+  });
 
   const advance = (t: MaintenanceTicket) => {
     const next = nextStatus(t.status);
     if (!next || !canTransition(t.status, next)) return;
-    setTickets((p) => p.map((x) => x.id === t.id ? { ...x, status: next } : x));
+    updateStatus.mutate({ id: t.id, status: next });
   };
   const by = (s: TicketStatus) => tickets.filter((t) => t.status === s);
 
@@ -43,7 +112,8 @@ export default function MaintenancePage() {
 
   return (
     <div className="flex flex-col gap-7 max-w-[1600px] mx-auto animate-fade-in">
-
+      {showModal && <ReportIssueModal onClose={() => setShowModal(false)} />}
+      
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
         <div>
@@ -55,7 +125,7 @@ export default function MaintenancePage() {
           </h1>
           <p className="text-[#64748B] text-sm mt-1.5">Oversee and manage facility health across all university clusters.</p>
         </div>
-        <button className="btn-primary px-5 py-3 text-sm self-start group">
+        <button className="btn-primary px-5 py-3 text-sm self-start group" onClick={() => setShowModal(true)}>
           <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" /> Report New Issue
         </button>
       </div>
@@ -141,7 +211,7 @@ export default function MaintenancePage() {
 
                       <div className="flex items-center justify-between text-[#94A3B8] text-[10px] font-medium pt-3 border-t border-[#F1F5F9]">
                         <div className="flex items-center gap-1"><MapPin className="w-3 h-3 text-[#2563EB]" />{ticket.location}</div>
-                        <div className="flex items-center gap-1"><Clock className="w-3 h-3" />{ticket.createdAt}</div>
+                        <div className="flex items-center gap-1"><Clock className="w-3 h-3" />{new Date(ticket.createdAt).toLocaleDateString()}</div>
                       </div>
 
                       {next && canTransition(ticket.status, next) && (

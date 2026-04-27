@@ -1,5 +1,11 @@
 import { prisma } from '../../config/database.js';
-import { RoomStatus } from '@prisma/client';
+// import { RoomStatus } from '@prisma/client';
+export const RoomStatus = {
+  AVAILABLE: 'AVAILABLE',
+  BOOKED: 'BOOKED',
+  MAINTENANCE: 'MAINTENANCE',
+} as const;
+type RoomStatus = typeof RoomStatus[keyof typeof RoomStatus];
 import { AppError } from '../../core/errors.js';
 
 export class RoomService {

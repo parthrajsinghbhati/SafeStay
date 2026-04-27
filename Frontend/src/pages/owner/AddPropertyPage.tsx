@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { Home, Plus, Trash2, Pencil, ArrowLeft, ArrowRight, MapPin, Check, Sparkles, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { apiPost } from '../../lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 const schema = z.object({
   name:        z.string().min(3, 'At least 3 characters'),
@@ -24,6 +25,7 @@ export default function AddPropertyPage() {
   const toggle = (a: string) =>
     setValue('amenities', amenities.includes(a) ? amenities.filter((x) => x !== a) : [...amenities, a]);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const onSubmit = async (d: Form) => {
     try {
@@ -34,6 +36,7 @@ export default function AddPropertyPage() {
         amenities: amenities,
         basePrice: 850 // Mock default price
       });
+      await queryClient.invalidateQueries({ queryKey: ['properties'] });
       alert('Property published successfully!');
       navigate('/owner/dashboard');
     } catch (err) {

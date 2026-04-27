@@ -1,5 +1,19 @@
 import { prisma } from '../../../config/database.js';
-import { RoomStatus, BookingStatus } from '@prisma/client';
+// import { RoomStatus, BookingStatus } from '@prisma/client';
+export const RoomStatus = {
+  AVAILABLE: 'AVAILABLE',
+  BOOKED: 'BOOKED',
+  MAINTENANCE: 'MAINTENANCE',
+} as const;
+type RoomStatus = typeof RoomStatus[keyof typeof RoomStatus];
+
+export const BookingStatus = {
+  PENDING: 'PENDING',
+  LOCKED: 'LOCKED',
+  CONFIRMED: 'CONFIRMED',
+  CANCELLED: 'CANCELLED',
+} as const;
+type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
 
 /**
  * BookingService Class

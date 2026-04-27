@@ -44,3 +44,8 @@ export async function apiPost<T>(url: string, body: unknown): Promise<T> {
   const res = await api.post<ApiResponse<T>>(url, body);
   return res.data.data;
 }
+
+export async function apiPatch<T>(url: string, body: unknown): Promise<T> {
+  const res = await api.patch<ApiResponse<T>>(url, body);
+  return res.data.data;
+}

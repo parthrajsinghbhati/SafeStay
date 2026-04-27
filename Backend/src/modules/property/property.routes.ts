@@ -3,9 +3,15 @@ import { prisma } from '../../config/database.js';
 
 const router = Router();
 
+// No longer needed for PostgreSQL since it natively supports arrays
+const parseRoom = (room: any) => {
+  return room;
+};
+
 // Seed data if database is empty
 const seedDatabaseIfEmpty = async () => {
   const count = await prisma.room.count();
+  console.log('Current room count:', count);
   if (count === 0) {
     const imagesList = [
       'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400',
@@ -57,7 +63,9 @@ seedDatabaseIfEmpty().catch(console.error);
 
 router.get('/', async (req, res) => {
   try {
-    const properties = await prisma.room.findMany();
+    const rooms = await prisma.room.findMany();
+    console.log(`Fetching properties: found ${rooms.length} records`);
+    const properties = rooms.map(parseRoom);
     res.json({ success: true, message: 'Properties fetched', data: { properties } });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -69,6 +77,7 @@ router.post('/', async (req, res) => {
     const property = await prisma.room.create({
       data: {
         name: req.body.name,
+        description: req.body.description,
         roomNumber: `ROOM-${Date.now()}`,
         location: req.body.location || 'Unknown',
         basePrice: req.body.basePrice || 1000,
@@ -79,8 +88,9 @@ router.post('/', async (req, res) => {
       }
     });
 
-    res.status(201).json({ success: true, message: 'Property created', data: { property } });
+    res.status(201).json({ success: true, message: 'Property created', data: { property: parseRoom(property) } });
   } catch (error) {
+    console.error('Error creating property:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });

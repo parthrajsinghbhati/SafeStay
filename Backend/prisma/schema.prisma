@@ -6,15 +6,15 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ENUMS
+// MODELS
 
 enum Role {
   STUDENT
-  ADMIN
-  WARDEN
   OWNER
+  ADMIN
 }
 
 enum RoomStatus {
@@ -25,12 +25,21 @@ enum RoomStatus {
 
 enum BookingStatus {
   PENDING
-  LOCKED
   CONFIRMED
   CANCELLED
 }
 
-// MODELS
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum TicketPriority {
+  LOW
+  STANDARD
+  URGENT
+}
 
 model User {
   id           String   @id @default(uuid())
@@ -65,6 +74,7 @@ model Profile {
 model Room {
   id         String     @id @default(uuid())
   name       String?
+  description String?
   location   String?
   roomNumber String     @unique
   basePrice  Float
@@ -96,4 +106,20 @@ model Booking {
   updatedAt  DateTime      @updatedAt
 
   @@map("bookings")
+}
+
+model MaintenanceTicket {
+  id           String         @id @default(uuid())
+  ticketNumber String         @unique
+  title        String
+  description  String
+  status       TicketStatus   @default(OPEN)
+  priority     TicketPriority @default(STANDARD)
+  location     String
+  assignee     String?
+  
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("maintenance_tickets")
 }
