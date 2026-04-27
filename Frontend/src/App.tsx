@@ -8,10 +8,11 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/student/DashboardPage';
 import BookingsPage from './pages/student/BookingsPage';
 import OwnerDashboardPage from './pages/owner/OwnerDashboardPage';
+import OwnerBookingsPage from './pages/owner/OwnerBookingsPage';
 import MaintenancePage from './pages/MaintenancePage';
 import AddPropertyPage from './pages/owner/AddPropertyPage';
-import PlaceholderPage from './pages/PlaceholderPage';
-import PaymentPage from './pages/student/PaymentPage';
+// import PlaceholderPage from './pages/PlaceholderPage';
+// import PaymentPage from './pages/student/PaymentPage';
 import HelpSupportPage from './pages/HelpSupportPage';
 
 const queryClient = new QueryClient({
@@ -32,10 +33,7 @@ export default function App() {
             <Route element={<AppLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/payments" element={<PaymentPage />} />
               <Route path="/maintenance" element={<MaintenancePage />} />
-              <Route path="/contracts" element={<PlaceholderPage title="Contracts" />} />
-              <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
               <Route path="/help" element={<HelpSupportPage />} />
             </Route>
           </Route>
@@ -44,11 +42,8 @@ export default function App() {
           <Route element={<ProtectedRoute allowedRoles={['OWNER']} />}>
             <Route element={<AppLayout ownerMode />}>
               <Route path="/owner/dashboard" element={<OwnerDashboardPage />} />
-              <Route path="/owner/bookings" element={<PlaceholderPage title="My Bookings" />} />
-              <Route path="/owner/payments" element={<PlaceholderPage title="Payments" />} />
+              <Route path="/owner/bookings" element={<OwnerBookingsPage />} />
               <Route path="/owner/maintenance" element={<MaintenancePage />} />
-              <Route path="/owner/contracts" element={<PlaceholderPage title="Contracts" />} />
-              <Route path="/owner/settings" element={<PlaceholderPage title="Settings" />} />
               <Route path="/owner/add-property" element={<AddPropertyPage />} />
               <Route path="/owner/help" element={<HelpSupportPage />} />
             </Route>

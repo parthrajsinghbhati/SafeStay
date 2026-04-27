@@ -30,18 +30,21 @@ export default function DashboardPage() {
   const rooms = propertiesData?.properties || [];
   const bookings = bookingsData?.bookings || [];
 
-  let displayedRooms = rooms.map(room => {
-    if (bookings.find(b => b.roomId === room.id)) {
+  const displayedRooms = rooms.map(room => {
+    // If the current user has booked it, mark as BOOKED regardless of DB status
+    // (This helps with immediate UI feedback if DB sync is slow)
+    if (bookings?.some(b => b.roomId === room.id)) {
       return { ...room, status: 'BOOKED' as const };
     }
     return room;
   });
 
+  let filteredRooms = [...displayedRooms];
   if (filterActive) {
-    displayedRooms = displayedRooms.filter(r => r.status === 'AVAILABLE');
+    filteredRooms = filteredRooms.filter(r => r.status === 'AVAILABLE');
   }
   if (sortActive) {
-    displayedRooms.sort((a, b) => a.basePrice - b.basePrice);
+    filteredRooms.sort((a, b) => a.basePrice - b.basePrice);
   }
 
 
@@ -147,14 +150,14 @@ export default function DashboardPage() {
 
       {/* Section label */}
       <div className="flex items-center justify-between mt-4">
-        <h2 className="text-[var(--text)] font-bold text-2xl tracking-[-0.02em] display-font">
-          Available Properties <span className="text-[#8d90a0] font-medium text-[1.1rem] ml-1.5">({displayedRooms.length})</span>
+        <h2 className="text-[var(--text)] font-bold text-2xl tracking-[-0.025em] display-font">
+          Available Properties <span className="text-[#94A3B8] font-medium text-lg ml-1.5">({filteredRooms.length})</span>
         </h2>
       </div>
 
       {/* Room grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 stagger">
-        {displayedRooms.map((room) => (
+        {filteredRooms.map((room) => (
           <RoomCard key={room.id} room={room} onBook={setSelected} />
         ))}
       </div>

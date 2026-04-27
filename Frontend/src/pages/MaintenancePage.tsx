@@ -3,25 +3,26 @@ import {
   Plus, MoreHorizontal, MapPin, User, CheckCircle2,
   ClipboardList, Clock, ChevronRight,
 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { canTransition, nextStatus } from '../lib/maintenanceStateMachine';
 import type { MaintenanceTicket, TicketPriority, TicketStatus } from '../types';
 
 const COLS: { status: TicketStatus; label: string; accent: string; dot: string }[] = [
-  { status: 'REPORTED',    label: 'New Requests', accent: 'border-t-[#F59E0B]', dot: 'bg-[#F59E0B]' },
-  { status: 'IN_PROGRESS', label: 'In Progress',  accent: 'border-t-[#2563EB]', dot: 'bg-[#2563EB]' },
-  { status: 'RESOLVED',    label: 'Resolved',     accent: 'border-t-[#10B981]', dot: 'bg-[#10B981]' },
+  { status: 'REPORTED', label: 'New Requests', accent: 'border-t-[#F59E0B]', dot: 'bg-[#F59E0B]' },
+  { status: 'IN_PROGRESS', label: 'In Progress', accent: 'border-t-[#2563EB]', dot: 'bg-[#2563EB]' },
+  { status: 'RESOLVED', label: 'Resolved', accent: 'border-t-[#10B981]', dot: 'bg-[#10B981]' },
 ];
 
 const PRIORITY_STYLE: Record<string, string> = {
-  URGENT:   'bg-[#FEF2F2] text-[#DC2626]',
+  URGENT: 'bg-[#FEF2F2] text-[#DC2626]',
   STANDARD: 'bg-[#EFF6FF] text-[#2563EB]',
-  LOW:      'bg-[#F8FAFC] text-[#64748B]',
+  LOW: 'bg-[#F8FAFC] text-[#64748B]',
 };
 
 const LOG_BADGE: Record<string, string> = {
-  REPORTED:    'bg-[#FEF9C3] text-[#A16207]',
+  REPORTED: 'bg-[#FEF9C3] text-[#A16207]',
   IN_PROGRESS: 'bg-[#DBEAFE] text-[#1D4ED8]',
-  RESOLVED:    'bg-[#DCFCE7] text-[#15803D]',
+  RESOLVED: 'bg-[#DCFCE7] text-[#15803D]',
 };
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,19 +50,19 @@ function ReportIssueModal({ onClose, roomId }: { onClose: () => void; roomId?: s
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-semibold mb-1">Issue Title</label>
-            <input className="input-field w-full" value={title} onChange={(e)=>setTitle(e.target.value)} placeholder="e.g. Broken AC" />
+            <input className="input-field w-full" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Broken AC" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1">Description</label>
-            <textarea className="input-field w-full" rows={3} value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Describe the issue..." />
+            <textarea className="input-field w-full" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the issue..." />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1">Location</label>
-            <input className="input-field w-full" value={location} onChange={(e)=>setLocation(e.target.value)} placeholder="e.g. Unit 101" />
+            <input className="input-field w-full" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Unit 101" />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1">Priority</label>
-            <select className="input-field w-full" value={priority} onChange={(e)=>setPriority(e.target.value as TicketPriority)}>
+            <select className="input-field w-full" value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority)}>
               <option value="LOW">Low</option>
               <option value="STANDARD">Standard</option>
               <option value="URGENT">Urgent</option>
@@ -80,6 +81,7 @@ function ReportIssueModal({ onClose, roomId }: { onClose: () => void; roomId?: s
 }
 
 export default function MaintenancePage() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const { data: roomsData } = useQuery({
@@ -91,12 +93,12 @@ export default function MaintenancePage() {
     queryKey: ['maintenance'],
     queryFn: () => apiGet<{ tickets: MaintenanceTicket[] }>('/maintenance')
   });
-  
+
   const tickets = data?.tickets || [];
 
   const updateStatus = useMutation({
-    mutationFn: ({ id }: { id: string; status: TicketStatus }) =>
-      apiPatch(`/maintenance/${id}/advance`, {}),
+    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) =>
+      apiPatch(`/maintenance/${id}/status`, { status }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['maintenance'] })
   });
 
@@ -108,29 +110,33 @@ export default function MaintenancePage() {
   const by = (s: TicketStatus) => tickets.filter((t) => t.status === s);
 
   const stats = [
-    { label: 'Open Tickets',   value: by('REPORTED').length,    sub: '↑ 2 since yesterday', color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]', border: 'border-[#FDE68A]' },
-    { label: 'In Progress',    value: by('IN_PROGRESS').length,  sub: '4 urgent priority',   color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
-    { label: 'Resolved (24h)', value: by('RESOLVED').length,     sub: '98% completion rate', color: 'text-[#059669]', bg: 'bg-[#ECFDF5]', border: 'border-[#A7F3D0]' },
+    { label: 'Open Tickets', value: by('REPORTED').length, color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]', border: 'border-[#FDE68A]' },
+    { label: 'In Progress', value: by('IN_PROGRESS').length, color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
+    { label: 'Resolved (24h)', value: by('RESOLVED').length, color: 'text-[#059669]', bg: 'bg-[#ECFDF5]', border: 'border-[#A7F3D0]' },
   ];
 
   return (
     <div className="flex flex-col gap-7 max-w-[1600px] mx-auto animate-fade-in">
       {showModal && <ReportIssueModal onClose={() => setShowModal(false)} roomId={roomsData?.[0]?.id} />}
-      
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
         <div>
           <p className="flex items-center gap-1.5 text-[#94A3B8] text-[11px] font-medium mb-2">
-            Admin <ChevronRight className="w-3 h-3" /> Facility Management
+            {user?.role === 'OWNER' ? 'Owner Portal' : 'Student Portal'} <ChevronRight className="w-3 h-3" /> Facility Management
           </p>
           <h1 className="text-3xl font-bold text-[#0F172A] tracking-[-0.025em]">
             Maintenance <span className="text-[#2563EB]">Ledger</span>
           </h1>
-          <p className="text-[#64748B] text-sm mt-1.5">Oversee and manage facility health across all university clusters.</p>
+          <p className="text-[#64748B] text-sm mt-1.5">
+            {user?.role === 'OWNER' ? 'Oversee and resolve facility health across your properties.' : 'Report and track issues in your accommodation.'}
+          </p>
         </div>
-        <button className="btn-primary px-5 py-3 text-sm self-start group" onClick={() => setShowModal(true)}>
-          <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" /> Report New Issue
-        </button>
+        {user?.role !== 'OWNER' && (
+          <button className="btn-primary px-5 py-3 text-sm self-start group" onClick={() => setShowModal(true)}>
+            <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" /> Report New Issue
+          </button>
+        )}
       </div>
 
       {/* Stats */}
@@ -142,7 +148,6 @@ export default function MaintenancePage() {
               <p className="text-[#0F172A] text-4xl font-bold tracking-[-0.03em] leading-none">{String(s.value).padStart(2, '0')}</p>
               <span className={`text-[10px] font-semibold px-2 py-1 rounded-lg ${s.bg} ${s.color} border ${s.border}`}>LIVE</span>
             </div>
-            <p className="text-[#94A3B8] text-[10px] font-medium mt-3">{s.sub}</p>
           </div>
         ))}
         <div className="bg-white border border-[#E2E8F0] rounded-[16px] p-6 flex flex-col items-center justify-center gap-3 hover:border-[#BFDBFE] hover:bg-[#F8FAFC] transition-all duration-200 cursor-pointer group">
@@ -186,9 +191,8 @@ export default function MaintenancePage() {
                         <span className="text-[#94A3B8] text-[10px] font-medium">#{ticket.ticketNumber}</span>
                       </div>
 
-                      <h4 className={`font-semibold text-sm mb-1.5 leading-snug ${
-                        ticket.status === 'RESOLVED' ? 'text-[#94A3B8] line-through' : 'text-[#0F172A] group-hover/card:text-[#2563EB] transition-colors'
-                      }`}>
+                      <h4 className={`font-semibold text-sm mb-1.5 leading-snug ${ticket.status === 'RESOLVED' ? 'text-[#94A3B8] line-through' : 'text-[#0F172A] group-hover/card:text-[#2563EB] transition-colors'
+                        }`}>
                         {ticket.title}
                       </h4>
                       <p className="text-[#64748B] text-xs leading-relaxed mb-4">{ticket.description}</p>
@@ -269,30 +273,26 @@ export default function MaintenancePage() {
               </tr>
             </thead>
             <tbody>
-              {[
-                { name: 'Jordan Smith',    loc: 'Unit 502, Building C',  desc: 'Loose door handle in main entrance.',          status: 'REPORTED',    time: '12 mins ago' },
-                { name: 'Elena Rodriguez', loc: 'Common Area, Floor 2',  desc: 'Microwave in communal kitchen not heating.',    status: 'IN_PROGRESS', time: '45 mins ago' },
-                { name: 'Marcus Chen',     loc: 'Unit 112, Building A',  desc: 'Window latch repaired and sealed.',             status: 'RESOLVED',    time: '3 hours ago' },
-              ].map((row) => (
-                <tr key={row.name} className="border-b border-[#F8FAFC] hover:bg-[#F8FAFC] transition-colors group">
+              {tickets.slice(0, 5).map((row) => (
+                <tr key={row.id} className="border-b border-[#F8FAFC] hover:bg-[#F8FAFC] transition-colors group">
                   <td className="py-4 px-7">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 bg-[#2563EB] rounded-[10px] flex items-center justify-center text-white text-xs font-bold shrink-0">
-                        {row.name[0]}
+                        {row.room?.name?.[0] || 'R'}
                       </div>
                       <div>
-                        <p className="text-[#0F172A] text-sm font-semibold">{row.name}</p>
-                        <p className="text-[#94A3B8] text-[10px] font-medium mt-0.5">{row.loc}</p>
+                        <p className="text-[#0F172A] text-sm font-semibold">{row.room?.name || 'Room'}</p>
+                        <p className="text-[#94A3B8] text-[10px] font-medium mt-0.5">{row.location}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-[#64748B] text-sm">{row.desc}</td>
+                  <td className="py-4 px-4 text-[#64748B] text-sm">{row.description}</td>
                   <td className="py-4 px-4">
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${LOG_BADGE[row.status]}`}>
                       {row.status.replace('_', ' ')}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-[#94A3B8] text-xs font-medium whitespace-nowrap">{row.time}</td>
+                  <td className="py-4 px-4 text-[#94A3B8] text-xs font-medium whitespace-nowrap">{new Date(row.createdAt).toLocaleDateString()}</td>
                   <td className="py-4 px-7 text-right">
                     <button className="w-8 h-8 flex items-center justify-center rounded-[9px] hover:bg-[#F1F5F9] text-[#94A3B8] hover:text-[#0F172A] transition-all ml-auto">
                       <MoreHorizontal className="w-4 h-4" />

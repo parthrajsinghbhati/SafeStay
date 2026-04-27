@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { MapPin, Heart, Lock, Star, Shield, ArrowRight, Wifi, Dumbbell, Zap } from 'lucide-react';
 import { useSocket, type RoomEvent } from '../../hooks/useSocket';
 import type { Room, RoomStatus } from '../../types';
@@ -14,6 +14,10 @@ const AMENITY_ICONS: Record<string, React.ReactNode> = {
 export function RoomCard({ room, onBook }: Props) {
   const [status, setStatus] = useState<RoomStatus>(room.status);
   const [liked, setLiked] = useState(false);
+
+  useEffect(() => {
+    setStatus(room.status);
+  }, [room.status]);
 
   const handleEvent = useCallback((e: RoomEvent) => {
     if (e.roomId !== room.id) return;

@@ -55,6 +55,7 @@ export interface MaintenanceTicket {
   priority: TicketPriority;
   location: string;
   assignee?: string;
+  room?: Room;
   createdAt: string;
 }
 

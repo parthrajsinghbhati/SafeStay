@@ -38,11 +38,11 @@ export class ACDecorator extends RoomPricingDecorator {
 /**
  * Wi-Fi Decorator
  */
-export class WifiDecorator extends RoomPricingDecorator {
+export class WiFiDecorator extends RoomPricingDecorator {
   private static readonly WIFI_PRICE = 20.0;
 
   calculate(): number {
-    return super.calculate() + WifiDecorator.WIFI_PRICE;
+    return super.calculate() + WiFiDecorator.WIFI_PRICE;
   }
 
   getDescription(): string {
@@ -53,11 +53,11 @@ export class WifiDecorator extends RoomPricingDecorator {
 /**
  * Food/Meal Plan Decorator
  */
-export class FoodDecorator extends RoomPricingDecorator {
+export class MealDecorator extends RoomPricingDecorator {
   private static readonly FOOD_PRICE = 150.0;
 
   calculate(): number {
-    return super.calculate() + FoodDecorator.FOOD_PRICE;
+    return super.calculate() + MealDecorator.FOOD_PRICE;
   }
 
   getDescription(): string {

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, CalendarDays, CreditCard, Wrench, FileText,
-  Settings, HelpCircle, LogOut, X, Shield,
+  LayoutDashboard, CalendarDays, Wrench, 
+  HelpCircle, LogOut, X, Shield,
   ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -9,18 +9,12 @@ import { useAuth } from '../../hooks/useAuth';
 const STUDENT_NAV = [
   { to: '/dashboard',    icon: LayoutDashboard, label: 'Overview' },
   { to: '/bookings',     icon: CalendarDays,    label: 'My Bookings' },
-  { to: '/payments',     icon: CreditCard,      label: 'Payments' },
   { to: '/maintenance',  icon: Wrench,          label: 'Maintenance' },
-  { to: '/contracts',    icon: FileText,        label: 'Contracts' },
-  { to: '/settings',     icon: Settings,        label: 'Settings' },
 ];
 const OWNER_NAV = [
   { to: '/owner/dashboard',   icon: LayoutDashboard, label: 'Overview' },
   { to: '/owner/bookings',    icon: CalendarDays,    label: 'Bookings' },
-  { to: '/owner/payments',    icon: CreditCard,      label: 'Payments' },
   { to: '/owner/maintenance', icon: Wrench,          label: 'Maintenance' },
-  { to: '/owner/contracts',   icon: FileText,        label: 'Contracts' },
-  { to: '/owner/settings',    icon: Settings,        label: 'Settings' },
 ];
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {

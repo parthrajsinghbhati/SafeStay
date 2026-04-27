@@ -5,6 +5,9 @@ import { createServer } from 'http';
 import { prisma } from './config/database.js';
 import authRoutes from './modules/auth/auth.routes.js';
 import { initializeSocket } from './core/socket.js';
+import { ExpiryService } from './modules/booking/services/ExpiryService.js';
+
+ExpiryService.start();
 
 const app = express();
 const httpServer = createServer(app);

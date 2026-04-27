@@ -3,30 +3,51 @@ import { X, MapPin, ArrowRight, Check, Shield, Zap, CreditCard, Star, Smartphone
 import { useNavigate } from 'react-router-dom';
 import { calculateTotal } from '../../lib/pricingEngine';
 import { MOCK_ADDONS } from '../../lib/mockData';
-import { useMutation } from '@tanstack/react-query';
-import { apiPost } from '../../lib/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiPost, apiPatch } from '../../lib/api';
 import type { Room, Addon } from '../../types';
-import { useRoomLock } from '../../hooks/useRoomLock';
+import { useRoomSync } from '../../hooks/useRoomSync';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Props { room: Room; onClose: () => void; }
 
 export function BookingModal({ room, onClose }: Props) {
   const navigate = useNavigate();
-  const { lockRoom, unlockRoom } = useRoomLock();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { isLocked, lockRoom, unlockRoom } = useRoomSync(room.id, user?.id);
   const [selected, setSelected] = useState<Addon[]>([]);
 
   const [step, setStep] = useState<'configure' | 'payment'>('configure');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card'>('upi');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');
+  const [currentBookingId, setCurrentBookingId] = useState<string | null>(null);
 
   const toggle = (a: Addon) =>
     setSelected((p) => p.find((x) => x.id === a.id) ? p.filter((x) => x.id !== a.id) : [...p, a]);
   
   const pricing = calculateTotal(room.basePrice, selected);
 
-  const mutation = useMutation({
-    mutationFn: () => apiPost('/bookings', { roomId: room.id, expectedVersion: room.version || 1, extras: selected.map(s => s.name) }),
+  const initiateMutation = useMutation({
+    mutationFn: () => apiPost<{ booking: any }>('/bookings/initiate', { 
+      roomId: room.id, 
+      expectedVersion: typeof room.version === 'number' ? room.version : 0, 
+      extras: selected.map(s => s.name) 
+    }),
+    onSuccess: (data) => {
+      setCurrentBookingId(data.booking.id);
+      setStep('payment');
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Failed to initiate booking.');
+    }
+  });
+
+  const confirmMutation = useMutation({
+    mutationFn: (id: string) => apiPatch(`/bookings/${id}/confirm`, {}),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
       setPaymentStatus('success');
       setTimeout(() => {
         onClose();
@@ -35,26 +56,31 @@ export function BookingModal({ room, onClose }: Props) {
     },
     onError: (error: any) => {
       setPaymentStatus('idle');
-      alert(error.response?.data?.message || 'Failed to book the room. It might be already taken.');
+      alert(error.response?.data?.message || 'Failed to confirm payment.');
     }
   });
 
   const handleConfirm = () => {
+    if (!currentBookingId) return;
     setPaymentStatus('processing');
-    mutation.mutate();
+    confirmMutation.mutate(currentBookingId);
+  };
+
+  const handleProceedToPayment = () => {
+    initiateMutation.mutate();
   };
 
   useEffect(() => {
-    lockRoom(room.id);
-    return () => unlockRoom(room.id);
-  }, [lockRoom, unlockRoom, room.id]);
+    lockRoom();
+    return () => unlockRoom();
+  }, [lockRoom, unlockRoom]);
 
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-[#0F172A]/50 backdrop-blur-sm animate-fade-in"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
-            unlockRoom(room.id);
+            unlockRoom();
             onClose();
           }
         }}
@@ -112,7 +138,7 @@ export function BookingModal({ room, onClose }: Props) {
             </div>
             <button
               onClick={onClose}
-              onMouseDown={() => unlockRoom(room.id)}
+              onMouseDown={() => unlockRoom()}
               className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A] transition-all border border-[#E2E8F0]"
             >
               <X className="w-4 h-4" />
@@ -273,11 +299,12 @@ export function BookingModal({ room, onClose }: Props) {
 
             {step === 'configure' ? (
               <button 
-                onClick={() => setStep('payment')}
-                className="btn-primary w-full py-3.5 text-sm group/btn flex items-center justify-center"
+                onClick={handleProceedToPayment}
+                disabled={isLocked || initiateMutation.isPending}
+                className={`btn-primary w-full py-3.5 text-sm group/btn flex items-center justify-center ${(isLocked || initiateMutation.isPending) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                Proceed to Payment
-                <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-0.5 transition-transform" />
+                {initiateMutation.isPending ? 'Initiating...' : isLocked ? 'Room Locked by Another User' : 'Proceed to Payment'}
+                {!isLocked && !initiateMutation.isPending && <ArrowRight className="w-4 h-4 ml-1 group-hover/btn:translate-x-0.5 transition-transform" />}
               </button>
             ) : (
               <button 

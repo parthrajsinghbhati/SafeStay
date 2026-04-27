@@ -34,9 +34,11 @@ export class AuthService {
       include: { profile: true }
     });
     
-    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET || 'secretKey', {
-      expiresIn: '7d'
-    });
+    const token = jwt.sign(
+      { userId: newUser.id, role: newUser.role }, 
+      process.env.JWT_SECRET || 'secretKey', 
+      { expiresIn: '7d' }
+    );
     
     return {
       user: {
@@ -79,9 +81,11 @@ export class AuthService {
         throw new AppError(`Invalid role. This account is registered as a ${storedUser.role.toLowerCase()}.`, 403);
      }
      
-     const token = jwt.sign({ userId: storedUser.id }, process.env.JWT_SECRET || 'secretKey', {
-       expiresIn: '7d'
-     });
+     const token = jwt.sign(
+       { userId: storedUser.id, role: storedUser.role }, 
+       process.env.JWT_SECRET || 'secretKey', 
+       { expiresIn: '7d' }
+     );
      
      return { 
        user: {
