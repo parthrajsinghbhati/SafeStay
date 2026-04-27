@@ -21,8 +21,15 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
+      // Clear BOTH localStorage keys — the raw token AND Zustand's persisted store.
+      // Only clearing 'accessToken' leaves 'safestay-auth' intact, causing
+      // Zustand to restore the token on next rehydration → infinite redirect loop.
       localStorage.removeItem('accessToken');
-      window.location.href = '/login';
+      localStorage.removeItem('safestay-auth');
+      // Only redirect if not already on login page
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }

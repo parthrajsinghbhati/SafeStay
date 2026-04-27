@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/authStore';
 import {
   Eye, EyeOff, Shield, ArrowRight, CheckCircle2,
   Building2, GraduationCap, AlertCircle, Loader2, Sparkles
@@ -31,10 +32,21 @@ export default function LoginPage() {
   const [err, setErr] = useState('');
   const [isLoginHovered, setIsLoginHovered] = useState(false);
   const navigate = useNavigate();
-  const { login, register: registerUser } = useAuth();
+  const { login, register: registerUser, user, isAuthenticated } = useAuth();
+  const hasHydrated = useAuthStore(s => s._hasHydrated);
 
+  // ALL hooks must be called before any early returns (Rules of Hooks)
   const { register, handleSubmit, formState: { errors, isSubmitting } } =
     useForm<Form>({ resolver: zodResolver(schema) });
+
+  // Wait for store rehydration before making auto-redirect decisions
+  if (!hasHydrated) return null;
+
+  // Already logged in — send to correct dashboard
+  if (isAuthenticated && user) {
+    return <Navigate to={user.role === 'OWNER' ? '/owner/dashboard' : '/dashboard'} replace />;
+  }
+
 
   const onSubmit = async (data: Form) => {
     setErr('');

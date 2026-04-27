@@ -5,7 +5,8 @@ import { BASE_URL } from '../lib/api';
 
 export type RoomEvent =
   | { type: 'ROOM_LOCKED'; roomId: string }
-  | { type: 'LOCK_EXPIRED'; roomId: string };
+  | { type: 'LOCK_EXPIRED'; roomId: string }
+  | { type: 'ROOM_UNLOCKED'; roomId: string };
 
 /**
  * Connects to the Socket.io server and calls `onEvent` for room lock events.
@@ -23,6 +24,7 @@ export function useSocket(onEvent: (event: RoomEvent) => void) {
 
     socket.on('ROOM_LOCKED', (roomId: string) => onEvent({ type: 'ROOM_LOCKED', roomId }));
     socket.on('LOCK_EXPIRED', (roomId: string) => onEvent({ type: 'LOCK_EXPIRED', roomId }));
+    socket.on('ROOM_UNLOCKED', (roomId: string) => onEvent({ type: 'ROOM_UNLOCKED', roomId }));
 
     return () => { socket.disconnect(); };
   }, [onEvent]);

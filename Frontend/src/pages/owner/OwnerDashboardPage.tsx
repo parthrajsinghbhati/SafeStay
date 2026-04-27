@@ -2,13 +2,18 @@ import {
   TrendingUp, Plus, Calendar, AlertTriangle, Wrench,
   DollarSign, Search, ChevronRight, Shield, ArrowUpRight,
 } from 'lucide-react';
-import { MOCK_PROPERTIES, MOCK_ACTIVITY } from '../../lib/mockData';
+import { MOCK_ACTIVITY } from '../../lib/mockData';
 import { useAuth } from '../../hooks/useAuth';
+import { useAuthStore } from '../../store/authStore';
+import { useQuery } from '@tanstack/react-query';
+import { apiGet } from '../../lib/api';
 
 const STATUS_STYLE: Record<string, string> = {
   HEALTHY: 'bg-[#DCFCE7] text-[#15803D]',
+  AVAILABLE: 'bg-[#DCFCE7] text-[#15803D]',
   PENDING: 'bg-[#FEF9C3] text-[#A16207]',
   FULL:    'bg-[#DBEAFE] text-[#1D4ED8]',
+  BOOKED:  'bg-[#DBEAFE] text-[#1D4ED8]',
 };
 
 const FEED_ICON: Record<string, React.ReactNode> = {
@@ -27,6 +32,16 @@ const FEED_BG: Record<string, string> = {
 
 export default function OwnerDashboardPage() {
   const { user } = useAuth();
+  const accessToken = useAuthStore(s => s.accessToken);
+  
+  const { data, isLoading } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => apiGet<{ properties: any[] }>('/properties'),
+    enabled: !!accessToken,
+  });
+
+  const properties = data?.properties || [];
+  const totalRevenue = properties.reduce((acc, p) => acc + p.basePrice, 0);
 
   return (
     <div className="flex flex-col xl:flex-row gap-7 max-w-[1600px] mx-auto animate-fade-in">
@@ -44,12 +59,12 @@ export default function OwnerDashboardPage() {
               Welcome back, <span className="text-[#2563EB]">{user?.name?.split(' ')[0] ?? 'Owner'}</span>
             </h1>
             <p className="text-[#64748B] text-sm mt-1.5">
-              You have <span className="text-[#0F172A] font-semibold">12 active properties</span> requiring attention today.
+              You have <span className="text-[#0F172A] font-semibold">{properties.length} active properties</span> requiring attention today.
             </p>
           </div>
           <div className="bg-white border border-[#E2E8F0] rounded-[16px] px-6 py-5 shrink-0 hover:border-[#CBD5E1] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all">
-            <p className="text-[#94A3B8] text-[10px] font-semibold uppercase tracking-wider">Total Revenue</p>
-            <p className="text-[#0F172A] text-3xl font-bold mt-1.5 tracking-[-0.025em]">$42,850</p>
+            <p className="text-[#94A3B8] text-[10px] font-semibold uppercase tracking-wider">Total Base Revenue</p>
+            <p className="text-[#0F172A] text-3xl font-bold mt-1.5 tracking-[-0.025em]">${totalRevenue.toLocaleString()}</p>
             <p className="text-[#059669] text-xs font-semibold mt-1.5 flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5" /> +12.5% <span className="text-[#94A3B8] font-normal ml-1">this month</span>
             </p>
@@ -141,63 +156,60 @@ export default function OwnerDashboardPage() {
           </div>
 
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full min-w-[720px]">
-              <thead>
-                <tr className="text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wider border-b border-[#F1F5F9]">
-                  <th className="text-left py-3.5 px-7">Property</th>
-                  <th className="text-left py-3.5 px-4">Type</th>
-                  <th className="text-left py-3.5 px-4">Occupancy</th>
-                  <th className="text-left py-3.5 px-4">Revenue</th>
-                  <th className="text-left py-3.5 px-4">Status</th>
-                  <th className="text-right py-3.5 px-7" />
-                </tr>
-              </thead>
-              <tbody>
-                {MOCK_PROPERTIES.map((p) => (
-                  <tr key={p.id} className="border-b border-[#F8FAFC] hover:bg-[#F8FAFC] transition-colors group">
-                    <td className="py-4 px-7">
-                      <div className="flex items-center gap-3.5">
-                        <div className="w-10 h-10 rounded-[11px] bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] text-sm font-bold shrink-0">
-                          {p.name[0]}
-                        </div>
-                        <div>
-                          <p className="text-[#0F172A] text-sm font-semibold">{p.name}</p>
-                          <p className="text-[#94A3B8] text-xs mt-0.5">{p.address}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="text-[#475569] text-xs font-medium bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-lg">{p.type}</span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-20 h-1.5 bg-[#F1F5F9] rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${p.occupancy >= 90 ? 'bg-[#10B981]' : p.occupancy >= 70 ? 'bg-[#F59E0B]' : 'bg-[#94A3B8]'}`}
-                            style={{ width: `${p.occupancy}%` }}
-                          />
-                        </div>
-                        <span className="text-[#0F172A] text-xs font-semibold">{p.occupancy}%</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-[#0F172A] text-sm font-semibold">${p.monthlyRevenue.toLocaleString()}</p>
-                      <p className="text-[#059669] text-[10px] font-medium mt-0.5">+$420 vs last mo</p>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${STATUS_STYLE[p.status]}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-7 text-right">
-                      <button className="w-8 h-8 flex items-center justify-center rounded-[9px] hover:bg-[#F1F5F9] text-[#94A3B8] hover:text-[#0F172A] transition-all ml-auto">
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </td>
+            {isLoading ? (
+              <div className="p-8 text-center text-[#94A3B8]">Loading properties...</div>
+            ) : (
+              <table className="w-full min-w-[720px]">
+                <thead>
+                  <tr className="text-[10px] text-[#94A3B8] font-semibold uppercase tracking-wider border-b border-[#F1F5F9]">
+                    <th className="text-left py-3.5 px-7">Property</th>
+                    <th className="text-left py-3.5 px-4">Type</th>
+                    <th className="text-left py-3.5 px-4">Rating</th>
+                    <th className="text-left py-3.5 px-4">Base Price</th>
+                    <th className="text-left py-3.5 px-4">Status</th>
+                    <th className="text-right py-3.5 px-7" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {properties.map((p) => (
+                    <tr key={p.id} className="border-b border-[#F8FAFC] hover:bg-[#F8FAFC] transition-colors group">
+                      <td className="py-4 px-7">
+                        <div className="flex items-center gap-3.5">
+                          <div className="w-10 h-10 rounded-[11px] bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-center text-[#2563EB] text-sm font-bold shrink-0">
+                            {p.name?.[0] || 'R'}
+                          </div>
+                          <div>
+                            <p className="text-[#0F172A] text-sm font-semibold">{p.name || 'Untitled Room'}</p>
+                            <p className="text-[#94A3B8] text-xs mt-0.5">{p.location}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-[#475569] text-xs font-medium bg-[#F8FAFC] border border-[#E2E8F0] px-2.5 py-1 rounded-lg">Studio</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-[#0F172A] text-xs font-semibold">{p.rating} ★</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <p className="text-[#0F172A] text-sm font-semibold">${p.basePrice.toLocaleString()}</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full uppercase tracking-wide ${STATUS_STYLE[p.status] || STATUS_STYLE.AVAILABLE}`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-7 text-right">
+                        <button className="w-8 h-8 flex items-center justify-center rounded-[9px] hover:bg-[#F1F5F9] text-[#94A3B8] hover:text-[#0F172A] transition-all ml-auto">
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

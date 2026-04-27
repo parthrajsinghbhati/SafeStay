@@ -1,38 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SlidersHorizontal, ArrowUpDown, Shield, Zap, MapPin, Map, Star, Search } from 'lucide-react';
 import { RoomCard } from '../../components/rooms/RoomCard';
 import { BookingModal } from '../../components/rooms/BookingModal';
 import { apiGet } from '../../lib/api';
-import { useBookingStore } from '../../store/bookingStore';
+import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '../../store/authStore';
 import type { Room } from '../../types';
 
 export default function DashboardPage() {
-  const [rooms, setRooms] = useState<Room[]>([]);
   const [selected, setSelected] = useState<Room | null>(null);
   const [filterActive, setFilterActive] = useState(false);
   const [sortActive, setSortActive] = useState(false);
-  const bookings = useBookingStore(s => s.bookings);
 
-  useEffect(() => {
-    // Fetch 100 dynamically generated mock properties from backend api
-    apiGet<{ properties: Room[] }>('/properties')
-      .then(res => setRooms(res.properties))
-      .catch(console.error);
-  }, []);
+  const accessToken = useAuthStore(s => s.accessToken);
+  const isAuthenticated = !!accessToken;
+
+  const { data: propertiesData } = useQuery({
+    queryKey: ['properties'],
+    queryFn: () => apiGet<{ properties: Room[] }>('/properties'),
+    enabled: isAuthenticated,
+  });
+
+  const { data: bookingsData } = useQuery({
+    queryKey: ['bookings'],
+    queryFn: () => apiGet<{ bookings: any[] }>('/bookings'),
+    enabled: isAuthenticated,
+  });
+
+  const rooms = propertiesData?.properties || [];
+  const bookings = bookingsData?.bookings || [];
 
   let displayedRooms = rooms.map(room => {
-    // If we've booked it locally, mock the PENDING_LOCK status
     if (bookings.find(b => b.roomId === room.id)) {
-      return { ...room, status: 'PENDING_LOCK' as const };
+      return { ...room, status: 'BOOKED' as const };
     }
     return room;
   });
+
   if (filterActive) {
     displayedRooms = displayedRooms.filter(r => r.status === 'AVAILABLE');
   }
   if (sortActive) {
     displayedRooms.sort((a, b) => a.basePrice - b.basePrice);
   }
+
 
   return (
     <div className="flex flex-col gap-7 max-w-[1400px] mx-auto animate-fade-in">

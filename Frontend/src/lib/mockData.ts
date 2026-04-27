@@ -10,10 +10,10 @@ export const MOCK_ROOMS: Room[] = [
 ];
 
 export const MOCK_ADDONS: Addon[] = [
-  { id: 'ac', name: 'Air Conditioning', description: 'Climate control for your comfort', price: 50 },
-  { id: 'meals', name: 'Premium Food Plan', description: '3 gourmet meals daily', price: 150 },
-  { id: 'wifi', name: 'High-Speed WiFi', description: 'Gigabit fiber connection', price: 30 },
-  { id: 'parking', name: 'Parking Space', description: 'Secure underground parking', price: 80 },
+  { id: 'ac', name: 'AC', description: 'Climate control for your comfort', price: 50 },
+  { id: 'meals', name: 'Food', description: '3 gourmet meals daily', price: 150 },
+  { id: 'wifi', name: 'WiFi', description: 'Gigabit fiber connection', price: 30 },
+  { id: 'parking', name: 'Parking', description: 'Secure underground parking', price: 80 },
 ];
 
 export const MOCK_TICKETS: MaintenanceTicket[] = [

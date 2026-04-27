@@ -68,4 +68,23 @@ export class BookingController {
       next(error);
     }
   }
+  static async getBookings(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) throw new AppError('Unauthorized', 401);
+
+      const bookings = await prisma.booking.findMany({
+        where: { userId },
+        include: { room: true },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      res.status(200).json({
+        success: true,
+        data: { bookings }
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

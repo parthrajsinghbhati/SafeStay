@@ -6,5 +6,6 @@ const router = Router();
 
 // Endpoint: POST /api/bookings
 router.post('/', authenticate, BookingController.createBooking);
+router.get('/', authenticate, BookingController.getBookings);
 
 export default router;

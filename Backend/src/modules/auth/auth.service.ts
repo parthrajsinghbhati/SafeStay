@@ -5,44 +5,47 @@ import * as jwtCore from 'jsonwebtoken';
 const jwt = (jwtCore as any).default || jwtCore;
 import type { RegisterDTO } from '../../interfaces/auth.dto.js';
 import { AppError } from '../../core/errors.js';
-
-// In-Memory User Store for Demo
-const MOCK_USERS: Record<string, any> = {
-  // Pre-seed an owner and student
-  'owner@safestay.com': { password: 'password123', role: 'OWNER', id: 'mocked_owner_1', firstName: 'Demo', lastName: 'Owner' },
-  'student@safestay.com': { password: 'password123', role: 'STUDENT', id: 'mocked_student_1', firstName: 'Demo', lastName: 'Student' }
-};
+import { Role } from '@prisma/client';
 
 export class AuthService {
   
   static async registerUser(data: RegisterDTO) {
     if(data.password.length < 6) throw new AppError("Invalid credentials - password must be >= 6", 401);
     
-    if (MOCK_USERS[data.email]) {
+    const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
+    if (existingUser) {
       throw new AppError("User with this email already exists", 409);
     }
     
-    const newId = `mock_user_${Date.now()}`;
-    MOCK_USERS[data.email] = {
-      password: data.password,
-      role: data.role || 'STUDENT',
-      id: newId,
-      firstName: data.firstName,
-      lastName: data.lastName
-    };
+    const passwordHash = await bcrypt.hash(data.password, 10);
     
-    const token = jwt.sign({ userId: newId }, process.env.JWT_SECRET || 'secretKey', {
+    const newUser = await prisma.user.create({
+      data: {
+        email: data.email,
+        passwordHash,
+        role: (data.role as Role) || Role.STUDENT,
+        profile: {
+          create: {
+            firstName: data.firstName || '',
+            lastName: data.lastName || ''
+          }
+        }
+      },
+      include: { profile: true }
+    });
+    
+    const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET || 'secretKey', {
       expiresIn: '7d'
     });
     
     return {
       user: {
-        id: newId,
-        email: data.email,
-        role: MOCK_USERS[data.email].role,
-        name: `${MOCK_USERS[data.email].firstName} ${MOCK_USERS[data.email].lastName}`,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        name: `${newUser.profile?.firstName} ${newUser.profile?.lastName}`.trim(),
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt
       },
       token
     };
@@ -51,12 +54,24 @@ export class AuthService {
   static async loginUser(email: string, passwordString: string, requestedRole?: string) {
      if(passwordString.length < 6) throw new AppError("Invalid credentials - password must be >= 6", 401);
      
-     const storedUser = MOCK_USERS[email];
+     const storedUser = await prisma.user.findUnique({ 
+       where: { email },
+       include: { profile: true }
+     });
+
      if (!storedUser) {
         throw new AppError("No account found with this email. Please sign up.", 404);
      }
      
-     if (storedUser.password !== passwordString) {
+     // Hack for demo users if their password isn't hashed
+     let isValid = false;
+     if (storedUser.passwordHash === passwordString) {
+       isValid = true; // For pre-seeded unhashed mock users
+     } else {
+       isValid = await bcrypt.compare(passwordString, storedUser.passwordHash);
+     }
+
+     if (!isValid) {
         throw new AppError("Invalid password.", 401);
      }
 
@@ -71,13 +86,41 @@ export class AuthService {
      return { 
        user: {
          id: storedUser.id,
-         email: email,
+         email: storedUser.email,
          role: storedUser.role,
-         name: `${storedUser.firstName} ${storedUser.lastName}`,
-         createdAt: new Date(),
-         updatedAt: new Date()
+         name: `${storedUser.profile?.firstName} ${storedUser.profile?.lastName}`.trim(),
+         createdAt: storedUser.createdAt,
+         updatedAt: storedUser.updatedAt
        }, 
        token 
      };
   }
+
+  // Pre-seed owner and student
+  static async seedMockUsers() {
+    const usersCount = await prisma.user.count();
+    if (usersCount === 0) {
+      console.log('Seeding mock users...');
+      const pwHash = await bcrypt.hash('password123', 10);
+      await prisma.user.create({
+        data: {
+          email: 'owner@safestay.com',
+          passwordHash: pwHash,
+          role: Role.OWNER,
+          profile: { create: { firstName: 'Demo', lastName: 'Owner' } }
+        }
+      });
+      await prisma.user.create({
+        data: {
+          email: 'student@safestay.com',
+          passwordHash: pwHash,
+          role: Role.STUDENT,
+          profile: { create: { firstName: 'Demo', lastName: 'Student' } }
+        }
+      });
+    }
+  }
 }
+
+// Automatically seed users
+AuthService.seedMockUsers().catch(console.error);

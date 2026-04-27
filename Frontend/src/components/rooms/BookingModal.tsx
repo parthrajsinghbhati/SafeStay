@@ -3,7 +3,8 @@ import { X, MapPin, ArrowRight, Check, Shield, Zap, CreditCard, Star, Smartphone
 import { useNavigate } from 'react-router-dom';
 import { calculateTotal } from '../../lib/pricingEngine';
 import { MOCK_ADDONS } from '../../lib/mockData';
-import { useBookingStore } from '../../store/bookingStore';
+import { useMutation } from '@tanstack/react-query';
+import { apiPost } from '../../lib/api';
 import type { Room, Addon } from '../../types';
 
 interface Props { room: Room; onClose: () => void; }
@@ -19,19 +20,25 @@ export function BookingModal({ room, onClose }: Props) {
     setSelected((p) => p.find((x) => x.id === a.id) ? p.filter((x) => x.id !== a.id) : [...p, a]);
   
   const pricing = calculateTotal(room.basePrice, selected);
-  const addBooking = useBookingStore(s => s.addBooking);
+
+  const mutation = useMutation({
+    mutationFn: () => apiPost('/bookings', { roomId: room.id, expectedVersion: room.version || 1, extras: selected.map(s => s.name) }),
+    onSuccess: () => {
+      setPaymentStatus('success');
+      setTimeout(() => {
+        onClose();
+        navigate('/bookings');
+      }, 1500);
+    },
+    onError: (error: any) => {
+      setPaymentStatus('idle');
+      alert(error.response?.data?.message || 'Failed to book the room. It might be already taken.');
+    }
+  });
 
   const handleConfirm = () => {
     setPaymentStatus('processing');
-    setTimeout(() => {
-      setPaymentStatus('success');
-      addBooking(room, pricing.total);
-      // Give time for user to see success state before closing and routing
-      setTimeout(() => {
-        onClose();
-        navigate('/payments');
-      }, 1500);
-    }, 2000);
+    mutation.mutate();
   };
 
   return (

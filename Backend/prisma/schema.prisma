@@ -14,6 +14,20 @@ enum Role {
   STUDENT
   ADMIN
   WARDEN
+  OWNER
+}
+
+enum RoomStatus {
+  AVAILABLE
+  BOOKED
+  MAINTENANCE
+}
+
+enum BookingStatus {
+  PENDING
+  LOCKED
+  CONFIRMED
+  CANCELLED
 }
 
 // MODELS
@@ -48,24 +62,16 @@ model Profile {
   @@map("profiles")
 }
 
-enum RoomStatus {
-  AVAILABLE
-  BOOKED
-  MAINTENANCE
-}
-
-enum BookingStatus {
-  PENDING
-  LOCKED
-  CONFIRMED
-  CANCELLED
-}
-
 model Room {
   id         String     @id @default(uuid())
+  name       String?
+  location   String?
   roomNumber String     @unique
   basePrice  Float
   status     RoomStatus @default(AVAILABLE)
+  images     String[]
+  amenities  String[]
+  rating     Float?     @default(5.0)
   version    Int        @default(1) // For Optimistic Concurrency Control
   
   bookings   Booking[]

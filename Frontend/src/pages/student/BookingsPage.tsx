@@ -1,8 +1,22 @@
-import { MapPin, Calendar, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { useBookingStore } from '../../store/bookingStore';
+import { MapPin, Calendar } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { apiGet } from '../../lib/api';
+import { useAuthStore } from '../../store/authStore';
 
 export default function BookingsPage() {
-  const bookings = useBookingStore(s => s.bookings);
+  const accessToken = useAuthStore(s => s.accessToken);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['bookings'],
+    queryFn: () => apiGet<{ bookings: any[] }>('/bookings'),
+    enabled: !!accessToken,
+  });
+
+  const bookings = data?.bookings || [];
+
+  if (isLoading) {
+    return <div className="p-12 text-center text-[var(--text-muted)] animate-pulse">Loading bookings...</div>;
+  }
 
   return (
     <div className="max-w-[1200px] mx-auto animate-fade-in pb-12">
@@ -23,26 +37,26 @@ export default function BookingsPage() {
           {bookings.map((booking) => (
             <div key={booking.id} className="bg-white border border-[#E2E8F0] rounded-[24px] p-5 shadow-sm hover:shadow-md hover:border-[#BFDBFE] transition-all flex flex-col sm:flex-row gap-5">
               <div className="w-full sm:w-[140px] h-[140px] shrink-0 rounded-[16px] overflow-hidden relative">
-                <img src={booking.image || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'} alt={booking.roomName} className="w-full h-full object-cover" />
+                <img src={booking.room?.images?.[0] || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'} alt={booking.room?.name || 'Room'} className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-[8px] flex items-center gap-1.5 shadow-sm border border-white/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34D399] animate-pulse" />
-                  <span className="text-[#059669] text-[10px] font-bold uppercase tracking-wider">Active</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${booking.status === 'CONFIRMED' ? 'bg-[#34D399]' : 'bg-[#FCD34D]'} animate-pulse`} />
+                  <span className={`${booking.status === 'CONFIRMED' ? 'text-[#059669]' : 'text-[#D97706]'} text-[10px] font-bold uppercase tracking-wider`}>{booking.status}</span>
                 </div>
               </div>
               <div className="flex-1 flex flex-col pt-1">
-                <h3 className="text-[var(--text)] font-bold text-lg leading-tight mb-1">{booking.roomName}</h3>
+                <h3 className="text-[var(--text)] font-bold text-lg leading-tight mb-1">{booking.room?.name || 'Unknown Room'}</h3>
                 <p className="flex items-center gap-1.5 text-[var(--text-muted)] text-xs mb-4">
-                  <MapPin className="w-3.5 h-3.5 text-[var(--primary)]" /> {booking.location}
+                  <MapPin className="w-3.5 h-3.5 text-[var(--primary)]" /> {booking.room?.location || 'Unknown Location'}
                 </p>
                 
                 <div className="mt-auto flex flex-col gap-3">
                   <div className="flex justify-between items-center text-sm border-t border-[#F1F5F9] pt-3">
                     <span className="text-[var(--text-muted)] font-medium">Monthly Rent</span>
-                    <span className="text-[var(--text)] font-bold">${booking.price}</span>
+                    <span className="text-[var(--text)] font-bold">${booking.totalPrice}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-[var(--text-muted)] font-medium">Booked On</span>
-                    <span className="text-[var(--text)] font-semibold">{new Date(booking.bookedAt).toLocaleDateString()}</span>
+                    <span className="text-[var(--text)] font-semibold">{new Date(booking.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </div>

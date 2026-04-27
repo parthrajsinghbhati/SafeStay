@@ -1,6 +1,8 @@
 import { prisma } from '../../config/database.js';
 import type { Request, Response, NextFunction } from 'express';
-import * as jwt from 'jsonwebtoken';
+import * as jwtCore from 'jsonwebtoken';
+// CJS / ESM interop for jsonwebtoken
+const jwt = (jwtCore as any).default || jwtCore;
 import { AppError } from '../errors.js';
 
 export interface AuthRequest extends Request {
