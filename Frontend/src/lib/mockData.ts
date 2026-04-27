@@ -1,12 +1,12 @@
 import type { Room, MaintenanceTicket, Property, ActivityFeedItem, Addon } from '../types';
 
 export const MOCK_ROOMS: Room[] = [
-  { id: '1', name: 'The Meridian Suites', location: 'Kensington District, London', basePrice: 850, images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400'], amenities: ['Free Fiber', 'Gym', 'In-unit'], status: 'AVAILABLE', rating: 4.9, distance: '2.1 miles from Campus' },
-  { id: '2', name: 'Atlas Residences', location: 'Midtown, Manchester', basePrice: 1200, images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'], amenities: ['Pool', '24/7 Guard'], status: 'PENDING_LOCK', rating: 4.7 },
-  { id: '3', name: 'The Nordic House', location: 'North Point, Edinburgh', basePrice: 980, images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400'], amenities: ['Sustainable', 'Kitchenette'], status: 'AVAILABLE', rating: 4.8 },
-  { id: '4', name: 'Sanctuary Lofts', location: 'Southside, Birmingham', basePrice: 720, images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'], amenities: ['Bike Storage', 'Lounge'], status: 'AVAILABLE', rating: 4.6 },
-  { id: '5', name: 'The Zenith Hub', location: 'Central London', basePrice: 1500, images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'], amenities: ['Service', 'Roof Deck'], status: 'PENDING_LOCK', rating: 4.9 },
-  { id: '6', name: 'Cobblestone Court', location: 'Old Town, Bristol', basePrice: 650, images: ['https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400'], amenities: ['Cafe On-site', 'Near Transit'], status: 'AVAILABLE', rating: 4.5 },
+  { id: '1', name: 'The Meridian Suites', location: 'Kensington District, London', basePrice: 850, images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400'], amenities: ['Free Fiber', 'Gym', 'In-unit'], status: 'AVAILABLE', version: 1, rating: 4.9, distance: '2.1 miles from Campus' },
+  { id: '2', name: 'Atlas Residences', location: 'Midtown, Manchester', basePrice: 1200, images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400'], amenities: ['Pool', '24/7 Guard'], status: 'PENDING_LOCK', version: 1, rating: 4.7 },
+  { id: '3', name: 'The Nordic House', location: 'North Point, Edinburgh', basePrice: 980, images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400'], amenities: ['Sustainable', 'Kitchenette'], status: 'AVAILABLE', version: 1, rating: 4.8 },
+  { id: '4', name: 'Sanctuary Lofts', location: 'Southside, Birmingham', basePrice: 720, images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400'], amenities: ['Bike Storage', 'Lounge'], status: 'AVAILABLE', version: 1, rating: 4.6 },
+  { id: '5', name: 'The Zenith Hub', location: 'Central London', basePrice: 1500, images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400'], amenities: ['Service', 'Roof Deck'], status: 'PENDING_LOCK', version: 1, rating: 4.9 },
+  { id: '6', name: 'Cobblestone Court', location: 'Old Town, Bristol', basePrice: 650, images: ['https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400'], amenities: ['Cafe On-site', 'Near Transit'], status: 'AVAILABLE', version: 1, rating: 4.5 },
 ];
 
 export const MOCK_ADDONS: Addon[] = [

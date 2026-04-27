@@ -38,6 +38,7 @@ export interface Room {
   images: string[];
   amenities: string[];
   status: RoomStatus;
+  version: number;
   rating?: number;
   distance?: string;
 }

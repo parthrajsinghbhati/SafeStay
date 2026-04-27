@@ -12,6 +12,7 @@ interface Props { room: Room; onClose: () => void; }
 export function BookingModal({ room, onClose }: Props) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<Addon[]>([]);
+
   const [step, setStep] = useState<'configure' | 'payment'>('configure');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card'>('upi');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success'>('idle');

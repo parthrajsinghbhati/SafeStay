@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { MapPin, Heart, Lock, Star, Shield, ArrowRight, Wifi, Dumbbell, Zap } from 'lucide-react';
-import { useSocket } from '../../hooks/useSocket';
+import { useSocket, type RoomEvent } from '../../hooks/useSocket';
 import type { Room, RoomStatus } from '../../types';
 
 interface Props { room: Room; onBook: (room: Room) => void; }
@@ -15,7 +15,7 @@ export function RoomCard({ room, onBook }: Props) {
   const [status, setStatus] = useState<RoomStatus>(room.status);
   const [liked, setLiked] = useState(false);
 
-  const handleEvent = useCallback((e: { type: 'ROOM_LOCKED' | 'LOCK_EXPIRED'; roomId: string }) => {
+  const handleEvent = useCallback((e: RoomEvent) => {
     if (e.roomId !== room.id) return;
     setStatus(e.type === 'ROOM_LOCKED' ? 'PENDING_LOCK' : 'AVAILABLE');
   }, [room.id]);
