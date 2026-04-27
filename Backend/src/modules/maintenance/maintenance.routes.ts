@@ -1,12 +1,19 @@
 import { Router } from 'express';
 import { prisma } from '../../config/database.js';
+import { MaintenanceService } from './MaintenanceService.js';
 
 const router = Router();
+
+/**
+ * Maintenance Module Routes
+ * Demonstrates the State Design Pattern for ticket management.
+ */
 
 // GET all maintenance tickets
 router.get('/', async (req, res) => {
   try {
     const tickets = await prisma.maintenanceTicket.findMany({
+      include: { room: true },
       orderBy: { createdAt: 'desc' }
     });
     res.json({ success: true, message: 'Tickets fetched', data: { tickets } });
@@ -19,7 +26,12 @@ router.get('/', async (req, res) => {
 // POST a new maintenance ticket
 router.post('/', async (req, res) => {
   try {
-    const { title, description, location, priority } = req.body;
+    const { title, description, location, priority, roomId } = req.body;
+    
+    if (!roomId) {
+      return res.status(400).json({ success: false, message: 'roomId is required' });
+    }
+
     const ticket = await prisma.maintenanceTicket.create({
       data: {
         ticketNumber: `TKT-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -28,28 +40,32 @@ router.post('/', async (req, res) => {
         location,
         priority: priority || 'STANDARD',
         status: 'OPEN',
+        roomId
       }
     });
-    res.status(201).json({ success: true, message: 'Ticket created', data: { ticket } });
+
+    // Automatically set RoomStatus to MAINTENANCE
+    await prisma.room.update({
+      where: { id: roomId },
+      data: { status: 'MAINTENANCE' }
+    });
+
+    res.status(201).json({ success: true, message: 'Ticket created and Room status set to Maintenance', data: { ticket } });
   } catch (error) {
     console.error('Error creating ticket:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
 
-// PATCH to update a ticket's status
-router.patch('/:id/status', async (req, res) => {
+// PATCH to advance a ticket's state (Pending -> UnderRepair -> Fixed)
+router.patch('/:id/advance', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    const ticket = await prisma.maintenanceTicket.update({
-      where: { id },
-      data: { status }
-    });
-    res.json({ success: true, message: 'Ticket updated', data: { ticket } });
-  } catch (error) {
-    console.error('Error updating ticket:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    const updatedTicket = await MaintenanceService.advanceTicketState(id);
+    res.json({ success: true, message: 'Ticket state advanced', data: { ticket: updatedTicket } });
+  } catch (error: any) {
+    console.error('Error advancing ticket state:', error);
+    res.status(500).json({ success: false, message: error.message || 'Server Error' });
   }
 });
 
