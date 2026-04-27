@@ -16,7 +16,7 @@ export function useSocket(onEvent: (event: RoomEvent) => void) {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io(BASE_URL.replace('/api', ''), {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || BASE_URL.replace('/api', ''), {
       transports: ['websocket'],
       autoConnect: true,
     });
