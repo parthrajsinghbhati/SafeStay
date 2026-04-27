@@ -50,7 +50,7 @@ export class MaintenanceContext {
   /**
    * Updates the TicketStatus in the database.
    */
-  public async updateTicketStatus(status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED'): Promise<void> {
+  public async updateTicketStatus(status: 'REPORTED' | 'IN_PROGRESS' | 'RESOLVED'): Promise<void> {
     await prisma.maintenanceTicket.update({
       where: { id: this.ticketId },
       data: { status },

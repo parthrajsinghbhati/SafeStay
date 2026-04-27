@@ -17,7 +17,7 @@ export function RoomCard({ room, onBook }: Props) {
 
   const handleEvent = useCallback((e: RoomEvent) => {
     if (e.roomId !== room.id) return;
-    setStatus(e.type === 'ROOM_LOCKED' ? 'PENDING_LOCK' : 'AVAILABLE');
+    setStatus(e.type === 'room:locked' ? 'PENDING_LOCK' : 'AVAILABLE');
   }, [room.id]);
   useSocket(handleEvent);
 

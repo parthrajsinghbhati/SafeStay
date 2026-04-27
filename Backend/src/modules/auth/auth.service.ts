@@ -5,14 +5,7 @@ import * as jwtCore from 'jsonwebtoken';
 const jwt = (jwtCore as any).default || jwtCore;
 import type { RegisterDTO } from '../../interfaces/auth.dto.js';
 import { AppError } from '../../core/errors.js';
-// import { Role } from '@prisma/client';
-export const Role = {
-  STUDENT: 'STUDENT',
-  ADMIN: 'ADMIN',
-  WARDEN: 'WARDEN',
-  OWNER: 'OWNER',
-} as const;
-type Role = typeof Role[keyof typeof Role];
+import { Role } from '@prisma/client';
 
 export class AuthService {
   

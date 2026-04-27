@@ -17,8 +17,8 @@ export const MOCK_ADDONS: Addon[] = [
 ];
 
 export const MOCK_TICKETS: MaintenanceTicket[] = [
-  { id: '1', ticketNumber: 'MS-1042', title: 'Water Leakage - Bathroom', description: 'Water is dripping from the ceiling in Unit 402, likely from the shower...', status: 'OPEN', priority: 'URGENT', location: 'Unit 402, Block B', createdAt: '2h ago' },
-  { id: '2', ticketNumber: 'MS-1041', title: 'Faulty AC Unit', description: 'The air conditioning makes a loud clicking noise and isn\'t cooling...', status: 'OPEN', priority: 'STANDARD', location: 'Unit 115, Block A', createdAt: '5h ago' },
+  { id: '1', ticketNumber: 'MS-1042', title: 'Water Leakage - Bathroom', description: 'Water is dripping from the ceiling in Unit 402, likely from the shower...', status: 'REPORTED', priority: 'URGENT', location: 'Unit 402, Block B', createdAt: '2h ago' },
+  { id: '2', ticketNumber: 'MS-1041', title: 'Faulty AC Unit', description: 'The air conditioning makes a loud clicking noise and isn\'t cooling...', status: 'REPORTED', priority: 'STANDARD', location: 'Unit 115, Block A', createdAt: '5h ago' },
   { id: '3', ticketNumber: 'MS-1038', title: 'Wi-Fi Connectivity Issue', description: 'Network specialist currently replacing the router in the East Wing lobby.', status: 'IN_PROGRESS', priority: 'STANDARD', location: 'East Wing Lobby', assignee: 'Alex Rivera', createdAt: '1d ago' },
   { id: '4', ticketNumber: 'MS-1035', title: 'Broken Study Lamp', description: 'Bulb and fuse replaced in the communal study area, Table 04.', status: 'RESOLVED', priority: 'LOW', location: 'Study Area', createdAt: '1d ago' },
 ];

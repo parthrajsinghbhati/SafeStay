@@ -4,11 +4,10 @@ import {
   ClipboardList, Clock, ChevronRight,
 } from 'lucide-react';
 import { canTransition, nextStatus } from '../lib/maintenanceStateMachine';
-import { MOCK_TICKETS } from '../lib/mockData';
-import type { MaintenanceTicket, TicketStatus } from '../types';
+import type { MaintenanceTicket, TicketPriority, TicketStatus } from '../types';
 
 const COLS: { status: TicketStatus; label: string; accent: string; dot: string }[] = [
-  { status: 'OPEN',        label: 'New Requests', accent: 'border-t-[#F59E0B]', dot: 'bg-[#F59E0B]' },
+  { status: 'REPORTED',    label: 'New Requests', accent: 'border-t-[#F59E0B]', dot: 'bg-[#F59E0B]' },
   { status: 'IN_PROGRESS', label: 'In Progress',  accent: 'border-t-[#2563EB]', dot: 'bg-[#2563EB]' },
   { status: 'RESOLVED',    label: 'Resolved',     accent: 'border-t-[#10B981]', dot: 'bg-[#10B981]' },
 ];
@@ -20,7 +19,7 @@ const PRIORITY_STYLE: Record<string, string> = {
 };
 
 const LOG_BADGE: Record<string, string> = {
-  OPEN:        'bg-[#FEF9C3] text-[#A16207]',
+  REPORTED:    'bg-[#FEF9C3] text-[#A16207]',
   IN_PROGRESS: 'bg-[#DBEAFE] text-[#1D4ED8]',
   RESOLVED:    'bg-[#DCFCE7] text-[#15803D]',
 };
@@ -28,7 +27,7 @@ const LOG_BADGE: Record<string, string> = {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPatch, apiPost } from '../lib/api';
 
-function ReportIssueModal({ onClose }: { onClose: () => void }) {
+function ReportIssueModal({ onClose, roomId }: { onClose: () => void; roomId?: string }) {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -70,7 +69,7 @@ function ReportIssueModal({ onClose }: { onClose: () => void }) {
           </div>
           <div className="flex gap-3 justify-end mt-6">
             <button className="btn-secondary px-4 py-2" onClick={onClose}>Cancel</button>
-            <button className="btn-primary px-4 py-2" onClick={() => create.mutate({ title, description, location, priority })} disabled={create.isPending}>
+            <button className="btn-primary px-4 py-2" onClick={() => create.mutate({ title, description, location, priority, roomId })} disabled={create.isPending || !roomId}>
               {create.isPending ? 'Submitting...' : 'Submit Ticket'}
             </button>
           </div>
@@ -83,6 +82,10 @@ function ReportIssueModal({ onClose }: { onClose: () => void }) {
 export default function MaintenancePage() {
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
+  const { data: roomsData } = useQuery({
+    queryKey: ['rooms-for-maintenance'],
+    queryFn: () => apiGet<any[]>('/rooms'),
+  });
 
   const { data } = useQuery({
     queryKey: ['maintenance'],
@@ -92,8 +95,8 @@ export default function MaintenancePage() {
   const tickets = data?.tickets || [];
 
   const updateStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: TicketStatus }) => 
-      apiPatch(`/maintenance/${id}/status`, { status }),
+    mutationFn: ({ id }: { id: string; status: TicketStatus }) =>
+      apiPatch(`/maintenance/${id}/advance`, {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['maintenance'] })
   });
 
@@ -105,14 +108,14 @@ export default function MaintenancePage() {
   const by = (s: TicketStatus) => tickets.filter((t) => t.status === s);
 
   const stats = [
-    { label: 'Open Tickets',   value: by('OPEN').length,        sub: '↑ 2 since yesterday', color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]', border: 'border-[#FDE68A]' },
+    { label: 'Open Tickets',   value: by('REPORTED').length,    sub: '↑ 2 since yesterday', color: 'text-[#D97706]', bg: 'bg-[#FFFBEB]', border: 'border-[#FDE68A]' },
     { label: 'In Progress',    value: by('IN_PROGRESS').length,  sub: '4 urgent priority',   color: 'text-[#2563EB]', bg: 'bg-[#EFF6FF]', border: 'border-[#BFDBFE]' },
     { label: 'Resolved (24h)', value: by('RESOLVED').length,     sub: '98% completion rate', color: 'text-[#059669]', bg: 'bg-[#ECFDF5]', border: 'border-[#A7F3D0]' },
   ];
 
   return (
     <div className="flex flex-col gap-7 max-w-[1600px] mx-auto animate-fade-in">
-      {showModal && <ReportIssueModal onClose={() => setShowModal(false)} />}
+      {showModal && <ReportIssueModal onClose={() => setShowModal(false)} roomId={roomsData?.[0]?.id} />}
       
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
@@ -267,7 +270,7 @@ export default function MaintenancePage() {
             </thead>
             <tbody>
               {[
-                { name: 'Jordan Smith',    loc: 'Unit 502, Building C',  desc: 'Loose door handle in main entrance.',          status: 'OPEN',        time: '12 mins ago' },
+                { name: 'Jordan Smith',    loc: 'Unit 502, Building C',  desc: 'Loose door handle in main entrance.',          status: 'REPORTED',    time: '12 mins ago' },
                 { name: 'Elena Rodriguez', loc: 'Common Area, Floor 2',  desc: 'Microwave in communal kitchen not heating.',    status: 'IN_PROGRESS', time: '45 mins ago' },
                 { name: 'Marcus Chen',     loc: 'Unit 112, Building A',  desc: 'Window latch repaired and sealed.',             status: 'RESOLVED',    time: '3 hours ago' },
               ].map((row) => (

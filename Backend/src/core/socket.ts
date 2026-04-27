@@ -22,14 +22,14 @@ export function initializeSocket(httpServer: HttpServer) {
     console.log(`🔌 Socket connected: ${socket.id}`);
 
     // User attempts to lock a room when opening the booking modal
-    socket.on('LOCK_ROOM', (data: { roomId: string; userId: string }) => {
+    socket.on('room:lock', (data: { roomId: string; userId: string }) => {
       const { roomId, userId } = data;
       const currentLock = lockedRooms.get(roomId);
       
       const now = Date.now();
       if (currentLock && currentLock.userId !== userId && currentLock.expiresAt > now) {
         // Room is already locked by someone else
-        socket.emit('LOCK_ERROR', { roomId, message: 'Room is currently locked by another user.' });
+        socket.emit('room:lock_error', { roomId, message: 'Room is currently locked by another user.' });
         return;
       }
 
@@ -37,7 +37,7 @@ export function initializeSocket(httpServer: HttpServer) {
       lockedRooms.set(roomId, { userId, expiresAt: now + LOCK_DURATION });
       
       // Notify all other clients that the room is locked
-      socket.broadcast.emit('ROOM_LOCKED', roomId);
+      socket.broadcast.emit('room:locked', roomId);
       console.log(`🔒 Room ${roomId} locked by user ${userId}`);
 
       // Optional: Set a timeout to automatically unlock if the lock expires
@@ -45,20 +45,20 @@ export function initializeSocket(httpServer: HttpServer) {
         const lock = lockedRooms.get(roomId);
         if (lock && lock.expiresAt <= Date.now() + 100) { // Small buffer
           lockedRooms.delete(roomId);
-          io.emit('LOCK_EXPIRED', roomId);
+          io.emit('room:lock_expired', roomId);
           console.log(`🔓 Lock expired for room ${roomId}`);
         }
       }, LOCK_DURATION);
     });
 
     // User cancels or completes booking
-    socket.on('UNLOCK_ROOM', (data: { roomId: string; userId: string }) => {
+    socket.on('room:unlock', (data: { roomId: string; userId: string }) => {
       const { roomId, userId } = data;
       const currentLock = lockedRooms.get(roomId);
 
       if (currentLock && currentLock.userId === userId) {
         lockedRooms.delete(roomId);
-        io.emit('ROOM_UNLOCKED', roomId);
+        io.emit('room:unlocked', roomId);
         console.log(`🔓 Room ${roomId} unlocked by user ${userId}`);
       }
     });

@@ -7,6 +7,7 @@ import { AppError } from '../errors.js';
 
 export interface AuthRequest extends Request {
   user?: {
+    id?: string;
     userId: string;
     role: string;
     [key: string]: any;
@@ -26,7 +27,11 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secretKey') as any;
-    req.user = decoded; // The auth service only put userId in the token, let's assume we fetch role or rely on routes
+    req.user = {
+      ...decoded,
+      id: decoded.id ?? decoded.userId,
+      userId: decoded.userId ?? decoded.id,
+    };
     next();
   } catch (error) {
     return next(new AppError('Unauthorized: Invalid or expired token', 401));

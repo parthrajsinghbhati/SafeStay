@@ -39,7 +39,7 @@ router.post('/', async (req, res) => {
         description,
         location,
         priority: priority || 'STANDARD',
-        status: 'OPEN',
+        status: 'REPORTED',
         roomId
       }
     });
@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PATCH to advance a ticket's state (Pending -> UnderRepair -> Fixed)
+// PATCH to advance a ticket's state (REPORTED -> IN_PROGRESS -> RESOLVED)
 router.patch('/:id/advance', async (req, res) => {
   try {
     const { id } = req.params;

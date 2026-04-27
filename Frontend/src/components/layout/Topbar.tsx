@@ -1,21 +1,15 @@
 import { Bell, Search, Plus, Menu, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useAuthStore } from '../../store/authStore';
 
 interface Props { ownerMode?: boolean; onMenu?: () => void; }
 
 export function Topbar({ ownerMode, onMenu }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const setAuth = useAuthStore(s => s.setAuth);
-  const token = useAuthStore(s => s.accessToken);
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? 'U';
 
   const handleAddListing = () => {
-    if (!ownerMode && user && token) {
-      setAuth({ ...user, role: 'OWNER' }, token);
-    }
     navigate('/owner/add-property');
   };
 
@@ -46,12 +40,14 @@ export function Topbar({ ownerMode, onMenu }: Props) {
       <div className="flex items-center gap-4">
 
         {/* Add listing */}
-        <button
-          onClick={handleAddListing}
-          className="hidden sm:flex items-center gap-2 btn-primary px-4 py-2 text-sm h-10 shadow-[var(--shadow-glow)]">
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
-          <span className="hidden lg:inline display-font text-white">Add Listing</span>
-        </button>
+        {ownerMode && (
+          <button
+            onClick={handleAddListing}
+            className="hidden sm:flex items-center gap-2 btn-primary px-4 py-2 text-sm h-10 shadow-[var(--shadow-glow)]">
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <span className="hidden lg:inline display-font text-white">Add Listing</span>
+          </button>
+        )}
 
         {/* Notifications */}
         <button className="relative w-10 h-10 flex items-center justify-center rounded-[12px] bg-[var(--surface-high)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors shadow-[var(--shadow-ambient)]">

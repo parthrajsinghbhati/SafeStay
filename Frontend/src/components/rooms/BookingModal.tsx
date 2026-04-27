@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, MapPin, ArrowRight, Check, Shield, Zap, CreditCard, Star, Smartphone, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { calculateTotal } from '../../lib/pricingEngine';
@@ -6,11 +6,13 @@ import { MOCK_ADDONS } from '../../lib/mockData';
 import { useMutation } from '@tanstack/react-query';
 import { apiPost } from '../../lib/api';
 import type { Room, Addon } from '../../types';
+import { useRoomLock } from '../../hooks/useRoomLock';
 
 interface Props { room: Room; onClose: () => void; }
 
 export function BookingModal({ room, onClose }: Props) {
   const navigate = useNavigate();
+  const { lockRoom, unlockRoom } = useRoomLock();
   const [selected, setSelected] = useState<Addon[]>([]);
 
   const [step, setStep] = useState<'configure' | 'payment'>('configure');
@@ -42,10 +44,20 @@ export function BookingModal({ room, onClose }: Props) {
     mutation.mutate();
   };
 
+  useEffect(() => {
+    lockRoom(room.id);
+    return () => unlockRoom(room.id);
+  }, [lockRoom, unlockRoom, room.id]);
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-[#0F172A]/50 backdrop-blur-sm animate-fade-in"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            unlockRoom(room.id);
+            onClose();
+          }
+        }}
     >
       <div className="w-full sm:max-w-4xl bg-white rounded-t-[24px] sm:rounded-[24px] overflow-hidden flex flex-col lg:flex-row max-h-[95vh] sm:max-h-[88vh] shadow-[0_32px_64px_rgba(0,0,0,0.2)] animate-scale-in border border-[#E2E8F0]">
 
@@ -100,6 +112,7 @@ export function BookingModal({ room, onClose }: Props) {
             </div>
             <button
               onClick={onClose}
+              onMouseDown={() => unlockRoom(room.id)}
               className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#64748B] hover:text-[#0F172A] transition-all border border-[#E2E8F0]"
             >
               <X className="w-4 h-4" />

@@ -5,7 +5,7 @@
 import type { TicketStatus } from '../types';
 
 const TRANSITIONS: Record<TicketStatus, TicketStatus | null> = {
-  OPEN: 'IN_PROGRESS',
+  REPORTED: 'IN_PROGRESS',
   IN_PROGRESS: 'RESOLVED',
   RESOLVED: null,
 };

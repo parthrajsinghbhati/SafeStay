@@ -21,7 +21,7 @@ export interface ApiResponse<T> {
   message: string;
 }
 
-export type RoomStatus = 'AVAILABLE' | 'PENDING_LOCK' | 'BOOKED';
+export type RoomStatus = 'AVAILABLE' | 'PENDING_LOCK' | 'BOOKED' | 'MAINTENANCE';
 
 export interface Addon {
   id: string;
@@ -43,7 +43,7 @@ export interface Room {
   distance?: string;
 }
 
-export type TicketStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+export type TicketStatus = 'REPORTED' | 'IN_PROGRESS' | 'RESOLVED';
 export type TicketPriority = 'URGENT' | 'STANDARD' | 'LOW';
 
 export interface MaintenanceTicket {

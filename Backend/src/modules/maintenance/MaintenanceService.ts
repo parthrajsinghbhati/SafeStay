@@ -19,7 +19,7 @@ export class MaintenanceService {
 
     let initialState;
     switch (ticket.status) {
-      case 'OPEN':
+      case 'REPORTED':
         initialState = new PendingState();
         break;
       case 'IN_PROGRESS':

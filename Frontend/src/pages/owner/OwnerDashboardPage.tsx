@@ -2,7 +2,6 @@ import {
   TrendingUp, Plus, Calendar, AlertTriangle, Wrench,
   DollarSign, Search, ChevronRight, Shield, ArrowUpRight,
 } from 'lucide-react';
-import { MOCK_ACTIVITY } from '../../lib/mockData';
 import { useAuth } from '../../hooks/useAuth';
 import { useAuthStore } from '../../store/authStore';
 import { useQuery } from '@tanstack/react-query';
@@ -35,13 +34,48 @@ export default function OwnerDashboardPage() {
   const accessToken = useAuthStore(s => s.accessToken);
   
   const { data, isLoading } = useQuery({
-    queryKey: ['properties'],
-    queryFn: () => apiGet<{ properties: any[] }>('/properties'),
+    queryKey: ['owner-properties'],
+    queryFn: () => apiGet<{ properties: any[] }>('/properties/owner'),
+    enabled: !!accessToken,
+  });
+  const { data: ticketsData } = useQuery({
+    queryKey: ['maintenance'],
+    queryFn: () => apiGet<{ tickets: any[] }>('/maintenance'),
+    enabled: !!accessToken,
+  });
+  const { data: bookingsData } = useQuery({
+    queryKey: ['bookings'],
+    queryFn: () => apiGet<{ bookings: any[] }>('/bookings'),
     enabled: !!accessToken,
   });
 
   const properties = data?.properties || [];
+  const tickets = ticketsData?.tickets || [];
+  const bookings = bookingsData?.bookings || [];
   const totalRevenue = properties.reduce((acc, p) => acc + p.basePrice, 0);
+  const availableCount = properties.filter((p: any) => p.status === 'AVAILABLE').length;
+  const bookedCount = properties.filter((p: any) => p.status === 'BOOKED').length;
+  const maintenanceCount = properties.filter((p: any) => p.status === 'MAINTENANCE').length;
+  const occupancyPct = properties.length > 0 ? Math.round((bookedCount / properties.length) * 100) : 0;
+  const reportedTickets = tickets.filter((t: any) => t.status === 'REPORTED').length;
+  const inProgressTickets = tickets.filter((t: any) => t.status === 'IN_PROGRESS').length;
+  const resolvedTickets = tickets.filter((t: any) => t.status === 'RESOLVED').length;
+  const activityFeed: Array<{ id: string; type: 'booking' | 'maintenance'; title: string; description: string; time: string; actions?: string[] }> = [
+    ...bookings.slice(0, 2).map((b: any) => ({
+      id: `booking-${b.id}`,
+      type: 'booking' as const,
+      title: 'New Booking Confirmed',
+      description: `${b.room?.name || 'Room'} booked for $${b.totalPrice}.`,
+      time: new Date(b.createdAt).toLocaleString(),
+    })),
+    ...tickets.slice(0, 2).map((t: any) => ({
+      id: `ticket-${t.id}`,
+      type: 'maintenance' as const,
+      title: `Maintenance: ${t.title}`,
+      description: `${t.location} (${t.status})`,
+      time: new Date(t.createdAt).toLocaleString(),
+    })),
+  ];
 
   return (
     <div className="flex flex-col xl:flex-row gap-7 max-w-[1600px] mx-auto animate-fade-in">
@@ -79,10 +113,10 @@ export default function OwnerDashboardPage() {
             <div className="relative z-10">
               <p className="text-[#94A3B8] text-[10px] font-semibold uppercase tracking-wider mb-4">Portfolio Occupancy</p>
               <div className="flex items-end gap-4 mb-6">
-                <p className="text-6xl font-bold text-[#0F172A] leading-none tracking-[-0.03em]">85%</p>
+                <p className="text-6xl font-bold text-[#0F172A] leading-none tracking-[-0.03em]">{occupancyPct}%</p>
                 <div className="mb-1">
                   <p className="text-[#059669] text-xs font-semibold flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5" /> +4%
+                    <TrendingUp className="w-3.5 h-3.5" /> {bookedCount} booked
                   </p>
                   <p className="text-[#94A3B8] text-[10px] font-medium">vs last month</p>
                 </div>
@@ -107,9 +141,9 @@ export default function OwnerDashboardPage() {
               <p className="text-[#94A3B8] text-[10px] font-semibold uppercase tracking-wider mb-5">Maintenance Status</p>
               <div className="space-y-4">
                 {[
-                  { label: 'Open Requests', count: 8,   color: 'text-[#D97706]', dot: 'bg-[#F59E0B]' },
-                  { label: 'In Progress',   count: 12,  color: 'text-[#2563EB]', dot: 'bg-[#3B82F6]' },
-                  { label: 'Completed',     count: 145, color: 'text-[#059669]', dot: 'bg-[#10B981]' },
+                  { label: 'Reported',    count: reportedTickets,   color: 'text-[#D97706]', dot: 'bg-[#F59E0B]' },
+                  { label: 'In Progress', count: inProgressTickets, color: 'text-[#2563EB]', dot: 'bg-[#3B82F6]' },
+                  { label: 'Resolved',    count: resolvedTickets,   color: 'text-[#059669]', dot: 'bg-[#10B981]' },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -144,7 +178,9 @@ export default function OwnerDashboardPage() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 p-7 border-b border-[#F1F5F9]">
             <div>
               <h2 className="text-[#0F172A] font-bold text-lg tracking-[-0.01em]">Properties Ledger</h2>
-              <p className="text-[#94A3B8] text-xs mt-0.5">Performance breakdown per unit</p>
+              <p className="text-[#94A3B8] text-xs mt-0.5">
+                {availableCount} available, {bookedCount} booked, {maintenanceCount} in maintenance
+              </p>
             </div>
             <div className="flex gap-2.5">
               <div className="relative group">
@@ -229,7 +265,7 @@ export default function OwnerDashboardPage() {
           </div>
 
           <div className="p-5 space-y-5">
-            {MOCK_ACTIVITY.map((item) => (
+            {activityFeed.map((item) => (
               <div key={item.id} className="flex gap-3.5 group/item">
                 <div className={`w-9 h-9 ${FEED_BG[item.type]} border rounded-[11px] flex items-center justify-center shrink-0 mt-0.5`}>
                   {FEED_ICON[item.type]}

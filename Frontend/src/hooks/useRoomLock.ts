@@ -7,13 +7,13 @@ export function useRoomLock() {
   const user = useAuthStore(state => state.user);
 
   const handleSocketEvent = useCallback((event: RoomEvent) => {
-    if (event.type === 'ROOM_LOCKED') {
+    if (event.type === 'room:locked') {
       setLockedRooms((prev) => {
         const next = new Set(prev);
         next.add(event.roomId);
         return next;
       });
-    } else if (event.type === 'LOCK_EXPIRED' || event.type === 'ROOM_UNLOCKED') {
+    } else if (event.type === 'room:lock_expired' || event.type === 'room:unlocked') {
       setLockedRooms((prev) => {
         const next = new Set(prev);
         next.delete(event.roomId);
@@ -26,12 +26,12 @@ export function useRoomLock() {
 
   const lockRoom = useCallback((roomId: string) => {
     if (!socketRef.current || !user?.id) return;
-    socketRef.current.emit('LOCK_ROOM', { roomId, userId: user.id });
+    socketRef.current.emit('room:lock', { roomId, userId: user.id });
   }, [socketRef, user?.id]);
 
   const unlockRoom = useCallback((roomId: string) => {
     if (!socketRef.current || !user?.id) return;
-    socketRef.current.emit('UNLOCK_ROOM', { roomId, userId: user.id });
+    socketRef.current.emit('room:unlock', { roomId, userId: user.id });
   }, [socketRef, user?.id]);
 
   const isRoomLocked = useCallback((roomId: string) => {

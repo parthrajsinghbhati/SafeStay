@@ -1,11 +1,10 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, CreditCard, Wrench, FileText,
-  Settings, HelpCircle, LogOut, RefreshCw, X, Shield,
-  ChevronRight, Sparkles,
+  Settings, HelpCircle, LogOut, X, Shield,
+  ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useAuthStore } from '../../store/authStore';
 
 const STUDENT_NAV = [
   { to: '/dashboard',    icon: LayoutDashboard, label: 'Overview' },
@@ -27,19 +26,8 @@ const OWNER_NAV = [
 export function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const setAuth = useAuthStore(s => s.setAuth);
-  const token = useAuthStore(s => s.accessToken);
   const nav = user?.role === 'OWNER' ? OWNER_NAV : STUDENT_NAV;
-  const switchTo = user?.role === 'OWNER' ? '/dashboard' : '/owner/dashboard';
   const initials = user?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() ?? 'U';
-
-  const handleRoleSwap = () => {
-    if (user && token) {
-      setAuth({ ...user, role: user.role === 'OWNER' ? 'STUDENT' : 'OWNER' }, token);
-    }
-    navigate(switchTo);
-    onClose?.();
-  };
 
   return (
     <aside className="w-[260px] h-full flex flex-col bg-[var(--surface-low)] border-r border-[var(--border)] relative z-30 select-none glass">
@@ -106,13 +94,6 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Bottom Actions */}
       <div className="px-3 pb-4 space-y-0.5 border-t border-[var(--border)] pt-3">
-        <button onClick={handleRoleSwap}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-[11px] text-sm font-medium w-full text-left text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-high)] transition-all group">
-          <span className="w-8 h-8 flex items-center justify-center rounded-[9px] group-hover:bg-[var(--surface-highest)] transition-colors">
-            <RefreshCw className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--primary)] group-hover:rotate-180 transition-all duration-500" />
-          </span>
-          Switch to {user?.role === 'OWNER' ? 'Student' : 'Owner'}
-        </button>
         <button 
           onClick={() => {
             navigate(user?.role === 'OWNER' ? '/owner/help' : '/help');
